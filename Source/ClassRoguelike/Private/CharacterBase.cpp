@@ -79,6 +79,8 @@ float ACharacterBase::GetHealth() const
 {
 	if (AttributeSetBase.IsValid()) {
 		return AttributeSetBase->GetHealth();
+		
+
 	}
 
 	return 0.0f;
