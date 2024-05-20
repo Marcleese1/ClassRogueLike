@@ -141,7 +141,7 @@ void ACharacterBase::Die()
 
 void ACharacterBase::AddCharacterAbilities()
 {
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || !AbilitySystemComponent->CharacterAbilitiesGiven) {
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->CharacterAbilitiesGiven) {
 		return;
 	}
 
@@ -177,7 +177,7 @@ void ACharacterBase::InitializeAttributes()
 
 void ACharacterBase::AddStartupEffects()
 {
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || !AbilitySystemComponent->StartupEffectsApplied) {
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->StartupEffectsApplied) {
 		return;
 	}
 	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
@@ -206,7 +206,7 @@ void ACharacterBase::SetHealth(float Health)
 void ACharacterBase::SetMana(float Mana)
 {
 	if (AttributeSetBase.IsValid()) {
-		AttributeSetBase->SetHealth(Mana);
+		AttributeSetBase->SetMana(Mana);
 	}
 }
 
