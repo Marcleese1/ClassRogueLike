@@ -16,5 +16,4 @@ class CLASSROGUELIKE_API AMainPlayerController : public APlayerController
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
-	
 };

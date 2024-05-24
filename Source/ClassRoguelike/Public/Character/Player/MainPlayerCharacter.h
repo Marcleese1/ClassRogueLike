@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "CharacterBase.h"
 #include "Player/MainPlayerState.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputActionValue.h"
 #include "MainPlayerCharacter.generated.h"
-
 /**
  * 
  */
@@ -16,69 +18,84 @@ class CLASSROGUELIKE_API AMainPlayerCharacter : public ACharacterBase
 	GENERATED_BODY()
 
 public:
+    AMainPlayerCharacter(const class FObjectInitializer& ObjectInitializer);
 
-	AMainPlayerCharacter(const class FObjectInitializer& ObjectInitializer);
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    virtual void PossessedBy(AController* NewController) override;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    class USpringArmComponent* GetCameraBoom();
+    class UCameraComponent* GetFollowCamera();
 
-	virtual void PossessedBy(AController* NewController) override;
+    UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|Camera")
+    float GetStartingCameraBoomArmLength();
 
-	class USpringArmComponent* GetCameraBoom();
+    UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|Camera")
+    FVector GetStartingCameraBoomLocation();
 
-	class UCameraComponent* GetFollowCamera();
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputMappingContext* MovementMappingContext;
 
-	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|Camera")
-	float GetStartingCameraBoomArmLength();
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* UseAbilityAction;
 
-	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|Camera")
-	FVector GetStartingCameraBoomLocation();
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputMappingContext* AbilityMappingContext;
+
+    void BindASCInput();
+    void OnRep_PlayerState() override;
 
 protected:
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "ClassRogueLike|Camera")
+    float BaseTurnRate = 45.0f;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "ClassRogueLike|Camera")
-	float BaseTurnRate = 45.0f;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ClassRogueLike|Camera")
+    float BaseLookupRate = 45.0f;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "ClassRogueLike|Camera")
-	float BaseLookupRate = 45.0f;
+    UPROPERTY(BlueprintReadOnly, Category = "ClassRogueLike|Camera")
+    float StartingCameraBoomArmLength;
 
-	UPROPERTY(BlueprintReadOnly, Category = "ClassRogueLike|Camera")
-	float StartingCameraBoomArmLength;
+    UPROPERTY(BlueprintReadOnly, Category = "ClassRogueLike|Camera")
+    FVector StartingCameraBoomLocation;
 
-	UPROPERTY(BlueprintReadOnly, Category = "ClassRogueLike|Camera")
-	FVector StartingCameraBoomLocation;
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "ClassRogueLike|Camera")
+    class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(BlueprintReadOnly,VisibleAnywhere, Category = "ClassRogueLike|Camera")
-	class USpringArmComponent* CameraBoom;
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "ClassRogueLike|Camera")
+    class UCameraComponent* FollowCamera;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "ClassRogueLike|Camera")
-	class UCameraComponent* FollowCamera;
+    bool ASCInputBound = false;
+    FGameplayTag DeadTag;
 
+    virtual void BeginPlay() override;
 
-	bool ASCInputBound = false;
+    void LookUp(const FInputActionValue& Value);
+    void LookUpRate(const FInputActionValue& Value);
+    void Turn(const FInputActionValue& Value);
+    void TurnRate(const FInputActionValue& Value);
+    void MoveForward(const FInputActionValue& Value);
+    void MoveRight(const FInputActionValue& Value);
+    void InitializeStartingValues(AMainPlayerState* PS);
+    void UseAbility(const FInputActionValue& Value);
 
-	FGameplayTag DeadTag;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* LookUpAction;
 
-	virtual void BeginPlay() override;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* LookUpRateAction;
 
-	void LookUp(float Value);
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* TurnAction;
 
-	void LookUpRate(float Value);
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* TurnRateAction;
 
-	void Turn(float Value);
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* MoveForwardAction;
 
-	void TurnRate(float Value);
-	
-	void MoveForward(float Value);
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* MoveRightAction;
 
-	void MoveRight(float Value);
+    TMap<UInputAction*, FGameplayAbilitySpecHandle> InputToAbilityMap;
 
-	virtual void OnRep_PlayerState() override;
-
-	void InitializeStartingValues(AMainPlayerState* PS);
-
-	void BindASCInput();
-
-
-	
-
+    void ActivateAbility(UInputAction* InputAction);
 };

@@ -9,13 +9,12 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedDamageDelegate, UCharacterAbilitySystemComponent*, SourceASC, float, UnmitigatedDamage, float, MitigatedDamage);
 
 /**
- * 
+ * UCharacterAbilitySystemComponent class
  */
 UCLASS()
 class CLASSROGUELIKE_API UCharacterAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
 
 public:
 	bool CharacterAbilitiesGiven = false;
@@ -23,5 +22,12 @@ public:
 
 	FReceivedDamageDelegate ReceivedDamage;
 
+	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
+
 	virtual void ReceiveDamage(UCharacterAbilitySystemComponent* SourceASC, float UnmitigatedDamage, float MitigatedDamage);
+
+private:
+	bool bInputComponentInitialized;
+
+	void InitializeInputComponent(); // UPDATED
 };
