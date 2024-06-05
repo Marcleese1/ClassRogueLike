@@ -14,21 +14,10 @@
 
 AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-    static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/Game/Input/IA_UseAbility.IA_UseAbility"));
-    UseAbilityAction = UseAbilityActionFinder.Object;
+    // Initialize the AbilitySystemComponent
+    AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
-    static ConstructorHelpers::FObjectFinder<UInputMappingContext> AbilityMappingContextFinder(TEXT("/Game/Input/IMC_AbilityMapping.IMC_AbilityMapping"));
-    AbilityMappingContext = AbilityMappingContextFinder.Object;
-
-    static ConstructorHelpers::FObjectFinder<UInputMappingContext> FighterAbilitiesMappingContextFinder(TEXT("/Game/Input/IMC_FighterAbilities.IMC_FighterAbilities"));
-    FighterAbilitiesMappingContext = FighterAbilitiesMappingContextFinder.Object;
-
-    static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/Input/IA_StartTargeting.IA_StartTargeting"));
-    StartTargetingAction = StartTargetingActionFinder.Object;
-
-    static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/Input/IA_Confirm.IA_Confirm"));
-    ConfirmTargetAction = ConfirmTargetActionFinder.Object;
-
+    // Initialize other components here
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(FName("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
     CameraBoom->bUsePawnControlRotation = true;
@@ -68,23 +57,20 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
     static ConstructorHelpers::FObjectFinder<UInputAction> MoveRightActionFinder(TEXT("/Game/ClassRoguelike/Characters/InputActions/IA_MoveRight.IA_MoveRight"));
     MoveRightAction = MoveRightActionFinder.Object;
 
-    if (MovementMappingContext)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("MovementMappingContext loaded successfully"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to load MovementMappingContext"));
-    }
+    static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/Game/Input/IA_UseAbility.IA_UseAbility"));
+    UseAbilityAction = UseAbilityActionFinder.Object;
 
-    if (LookUpAction)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("LookUpAction loaded successfully"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to load LookUpAction"));
-    }
+    static ConstructorHelpers::FObjectFinder<UInputMappingContext> AbilityMappingContextFinder(TEXT("/Game/Input/IMC_AbilityMapping.IMC_AbilityMapping"));
+    AbilityMappingContext = AbilityMappingContextFinder.Object;
+
+    static ConstructorHelpers::FObjectFinder<UInputMappingContext> FighterAbilitiesMappingContextFinder(TEXT("/Game/Input/IMC_FighterAbilities.IMC_FighterAbilities"));
+    FighterAbilitiesMappingContext = FighterAbilitiesMappingContextFinder.Object;
+
+    static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/Input/IA_StartTargeting.IA_StartTargeting"));
+    StartTargetingAction = StartTargetingActionFinder.Object;
+
+    static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/Input/IA_Confirm.IA_Confirm"));
+    ConfirmTargetAction = ConfirmTargetActionFinder.Object;
 }
 
 void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -177,9 +163,17 @@ FVector AMainPlayerCharacter::GetStartingCameraBoomLocation()
 void AMainPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-
-    StartingCameraBoomArmLength = CameraBoom->TargetArmLength;
-    StartingCameraBoomLocation = CameraBoom->GetRelativeLocation();
+    // Ensure AbilitySystemComponent is valid
+    if (!AbilitySystemComponent.IsValid())
+    {
+        UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent is not initialized"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AbilitySystemComponent initialized successfully"));
+        // Bind input after ensuring the component is valid
+        BindASCInput();
+    }
 }
 
 void AMainPlayerCharacter::LookUp(const FInputActionValue& Value)
@@ -256,8 +250,70 @@ void AMainPlayerCharacter::BindASCInput()
 {
     if (!ASCInputBound && AbilitySystemComponent.IsValid() && IsValid(InputComponent))
     {
-        AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"), FString("CancelTarget"), FString("BaseAbilityID"), static_cast<int32>(BaseAbilityID::Confirm), static_cast<int32>(BaseAbilityID::Cancel)));
+        // Use FTopLevelAssetPath for the ability enum path
+        FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(FName("/Script/ClassRoguelike"), FName("BaseAbilityID"));
+
+        // Simplified binding method
+        AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent,
+            FGameplayAbilityInputBinds(
+                FString("ConfirmTarget"),
+                FString("CancelTarget"),
+                AbilityEnumAssetPath,
+                static_cast<int32>(BaseAbilityID::Confirm),
+                static_cast<int32>(BaseAbilityID::Cancel)
+            )
+        );
+
+        UE_LOG(LogTemp, Warning, TEXT("Starting to bind abilities to input actions"));
+
+        for (auto& Entry : InputToAbilityMap)
+        {
+            // Get the InputAction and GameplayAbility from the TMap
+            UInputAction* InputAction = const_cast<UInputAction*>(Entry.Key);
+            FGameplayAbilitySpecHandle AbilityHandle = Entry.Value;
+
+            // Debug logs to ensure validity
+            if (!InputAction)
+            {
+                UE_LOG(LogTemp, Error, TEXT("InputAction is nullptr"));
+                continue;
+            }
+
+            if (!AbilityHandle.IsValid())
+            {
+                UE_LOG(LogTemp, Error, TEXT("AbilityHandle is invalid"));
+                continue;
+            }
+
+            // Bind the ability to the input action
+            if (AbilitySystemComponent.IsValid())
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Binding InputAction %s to AbilityHandle with index"), *InputAction->GetName(), AbilityHandle);
+                AbilitySystemComponent->SetInputBinding(InputAction, AbilityHandle);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent is nullptr"));
+            }
+        }
+
         ASCInputBound = true;
+        UE_LOG(LogTemp, Warning, TEXT("ASCInputBound successfully set to true"));
+    }
+    else
+    {
+        if (ASCInputBound)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("ASCInputBound is already true"));
+        }
+        if (!AbilitySystemComponent.IsValid())
+        {
+            UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent is invalid"));
+        }
+        if (!IsValid(InputComponent))
+        {
+            UE_LOG(LogTemp, Error, TEXT("InputComponent is invalid"));
+        }
     }
 }
 
