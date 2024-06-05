@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "EnhancedInputComponent.h"  // Ensure this is included
 #include "CharacterAbilitySystemComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceivedDamageDelegate, UCharacterAbilitySystemComponent*, SourceASC, float, UnmitigatedDamage, float, MitigatedDamage);
@@ -17,17 +18,30 @@ class CLASSROGUELIKE_API UCharacterAbilitySystemComponent : public UAbilitySyste
 	GENERATED_BODY()
 
 public:
-	bool CharacterAbilitiesGiven = false;
-	bool StartupEffectsApplied = false;
+    bool CharacterAbilitiesGiven = false;
+    bool StartupEffectsApplied = false;
 
-	FReceivedDamageDelegate ReceivedDamage;
+    FReceivedDamageDelegate ReceivedDamage;
 
-	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
+    virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
+    virtual void ReceiveDamage(UCharacterAbilitySystemComponent* SourceASC, float UnmitigatedDamage, float MitigatedDamage);
 
-	virtual void ReceiveDamage(UCharacterAbilitySystemComponent* SourceASC, float UnmitigatedDamage, float MitigatedDamage);
+    // Method to bind input actions to abilities
+    void SetInputBinding(const UInputAction* InputAction, FGameplayAbilitySpecHandle AbilityHandle);
+
+    // Method to manually process input actions
+    void ProcessInputAction(const UInputAction* InputAction, bool bPressed);
 
 private:
-	bool bInputComponentInitialized;
+    bool bInputComponentInitialized;
 
-	void InitializeInputComponent(); // UPDATED
+    void InitializeInputComponent();
+    UEnhancedInputComponent* InputComponent;
+
+    // Delegate functions to handle input
+    void OnAbilityInputPressed(FGameplayAbilitySpecHandle AbilityHandle);
+    void OnAbilityInputReleased(FGameplayAbilitySpecHandle AbilityHandle);
+
+    // Map to store input action to ability spec handle bindings
+    TMap<const UInputAction*, FGameplayAbilitySpecHandle> InputToAbilityMap;
 };

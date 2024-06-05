@@ -12,7 +12,8 @@ public class ClassRoguelike : ModuleRules
             "CoreUObject",
             "Engine",
             "InputCore",
-            "EnhancedInput"});
+            "EnhancedInput",
+			"Niagara"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTags", "GameplayTasks" });
 

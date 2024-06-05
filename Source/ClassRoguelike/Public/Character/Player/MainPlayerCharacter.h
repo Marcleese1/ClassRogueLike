@@ -21,6 +21,9 @@ public:
     AMainPlayerCharacter(const class FObjectInitializer& ObjectInitializer);
 
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    void HandleInputActionTriggered(const FInputActionInstance& ActionInstance);
+    void HandleInputActionCompleted(const FInputActionInstance& ActionInstance);
     virtual void PossessedBy(AController* NewController) override;
 
     class USpringArmComponent* GetCameraBoom();
@@ -40,6 +43,15 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     class UInputMappingContext* AbilityMappingContext;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputMappingContext* FighterAbilitiesMappingContext;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* StartTargetingAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+    class UInputAction* ConfirmTargetAction;
 
     void BindASCInput();
     void OnRep_PlayerState() override;
@@ -76,6 +88,8 @@ protected:
     void MoveRight(const FInputActionValue& Value);
     void InitializeStartingValues(AMainPlayerState* PS);
     void UseAbility(const FInputActionValue& Value);
+    void StartTargeting(const FInputActionValue& Value);
+    void ConfirmTarget(const FInputActionValue& Value);
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     class UInputAction* LookUpAction;

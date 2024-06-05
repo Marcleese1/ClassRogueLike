@@ -21,17 +21,16 @@ public:
     UCharacterGameplayAbility();
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
-    BaseAbilityID AbilityInputID = BaseAbilityID::None; 
-    
+    BaseAbilityID AbilityInputID = BaseAbilityID::None;
+
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
     BaseAbilityID AbilityID = BaseAbilityID::None;
-
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability")
     bool ActivateAbilityOnGranted = false;
 
-
-
     virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
+    UFUNCTION(BlueprintCallable, Category = "Ability")
+    virtual void ConfirmTarget() {};  // Default implementation does nothing, override in derived classes
 };

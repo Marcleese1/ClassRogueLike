@@ -1,5 +1,6 @@
 #include "Character/Player/MainPlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Character/Abilities/CharacterGameplayAbility.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "AI/PlayerAIController.h"
@@ -14,10 +15,19 @@
 AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
     static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/Game/Input/IA_UseAbility.IA_UseAbility"));
-    UseAbilityAction = UseAbilityActionFinder.Object; // UPDATED
+    UseAbilityAction = UseAbilityActionFinder.Object;
 
     static ConstructorHelpers::FObjectFinder<UInputMappingContext> AbilityMappingContextFinder(TEXT("/Game/Input/IMC_AbilityMapping.IMC_AbilityMapping"));
-    AbilityMappingContext = AbilityMappingContextFinder.Object; // UPDATED
+    AbilityMappingContext = AbilityMappingContextFinder.Object;
+
+    static ConstructorHelpers::FObjectFinder<UInputMappingContext> FighterAbilitiesMappingContextFinder(TEXT("/Game/Input/IMC_FighterAbilities.IMC_FighterAbilities"));
+    FighterAbilitiesMappingContext = FighterAbilitiesMappingContextFinder.Object;
+
+    static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/Input/IA_StartTargeting.IA_StartTargeting"));
+    StartTargetingAction = StartTargetingActionFinder.Object;
+
+    static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/Input/IA_Confirm.IA_Confirm"));
+    ConfirmTargetAction = ConfirmTargetActionFinder.Object;
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(FName("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
@@ -88,10 +98,36 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
         EnhancedInputComponent->BindAction(TurnRateAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::TurnRate);
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::MoveForward);
         EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::MoveRight);
-        EnhancedInputComponent->BindAction(UseAbilityAction, ETriggerEvent::Started, this, &AMainPlayerCharacter::UseAbility);
+
+        EnhancedInputComponent->BindAction(UseAbilityAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::HandleInputActionTriggered);
+        EnhancedInputComponent->BindAction(UseAbilityAction, ETriggerEvent::Completed, this, &AMainPlayerCharacter::HandleInputActionCompleted);
+
+        EnhancedInputComponent->BindAction(StartTargetingAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::HandleInputActionTriggered);
+        EnhancedInputComponent->BindAction(StartTargetingAction, ETriggerEvent::Completed, this, &AMainPlayerCharacter::HandleInputActionCompleted);
+
+        EnhancedInputComponent->BindAction(ConfirmTargetAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::HandleInputActionTriggered);
+        EnhancedInputComponent->BindAction(ConfirmTargetAction, ETriggerEvent::Completed, this, &AMainPlayerCharacter::HandleInputActionCompleted);
     }
 
     BindASCInput();
+}
+
+void AMainPlayerCharacter::HandleInputActionTriggered(const FInputActionInstance& ActionInstance)
+{
+    UCharacterAbilitySystemComponent* ASC = Cast<UCharacterAbilitySystemComponent>(GetAbilitySystemComponent());
+    if (ASC)
+    {
+        ASC->ProcessInputAction(ActionInstance.GetSourceAction(), true);
+    }
+}
+
+void AMainPlayerCharacter::HandleInputActionCompleted(const FInputActionInstance& ActionInstance)
+{
+    UCharacterAbilitySystemComponent* ASC = Cast<UCharacterAbilitySystemComponent>(GetAbilitySystemComponent());
+    if (ASC)
+    {
+        ASC->ProcessInputAction(ActionInstance.GetSourceAction(), false);
+    }
 }
 
 void AMainPlayerCharacter::PossessedBy(AController* NewController)
@@ -113,6 +149,7 @@ void AMainPlayerCharacter::PossessedBy(AController* NewController)
         {
             Subsystem->AddMappingContext(MovementMappingContext, 1);
             Subsystem->AddMappingContext(AbilityMappingContext, 1);
+            Subsystem->AddMappingContext(FighterAbilitiesMappingContext, 1);
         }
     }
 }
@@ -195,7 +232,7 @@ void AMainPlayerCharacter::MoveRight(const FInputActionValue& Value)
     }
 }
 
-void AMainPlayerCharacter::OnRep_PlayerState() // Ensure input bindings are refreshed when player state is replicated
+void AMainPlayerCharacter::OnRep_PlayerState()
 {
     Super::OnRep_PlayerState();
     if (ASCInputBound)
@@ -228,7 +265,49 @@ void AMainPlayerCharacter::UseAbility(const FInputActionValue& Value)
 {
     if (Value.Get<bool>())
     {
-        UE_LOG(LogTemp, Warning, TEXT("Ability Used!"));
-        // Implement your ability logic here
+        UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+        if (ASC)
+        {
+            for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+            {
+                if (Spec.InputID == static_cast<int32>(BaseAbilityID::Ability1))
+                {
+                    ASC->TryActivateAbility(Spec.Handle);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void AMainPlayerCharacter::StartTargeting(const FInputActionValue& Value)
+{
+    UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+    if (ASC)
+    {
+        FGameplayAbilitySpec* AbilitySpec = ASC->FindAbilitySpecFromInputID(static_cast<int32>(BaseAbilityID::Ability1));
+        if (AbilitySpec)
+        {
+            ASC->TryActivateAbility(AbilitySpec->Handle);
+        }
+    }
+}
+
+void AMainPlayerCharacter::ConfirmTarget(const FInputActionValue& Value)
+{
+    UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+    if (ASC)
+    {
+        for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+        {
+            if (UCharacterGameplayAbility* Ability = Cast<UCharacterGameplayAbility>(Spec.Ability))
+            {
+                if (Ability->IsActive())
+                {
+                    Ability->ConfirmTarget();
+                    break;
+                }
+            }
+        }
     }
 }

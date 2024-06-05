@@ -13,6 +13,11 @@
 				"GameplayAbilities",
 				"AIModule"
 			]
+		},
+		{
+			"Name": "Niagara",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
@@ -34,6 +39,14 @@
 		{
 			"Name": "VirtualCamera",
 			"Enabled": true
-		}
+		},
+		{
+			"Name": "NiagaraFluids",
+			"Enabled": true
+		},
+    {
+      "Name": "Niagara",
+      "Enabled": true
+    }
 	]
 }
