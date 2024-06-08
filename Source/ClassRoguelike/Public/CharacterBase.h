@@ -6,7 +6,9 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
-#include "GameplayAbilitySpec.h"  // Include for FGameplayAbilitySpecHandle
+#include "GameplayAbilitySpec.h" 
+#include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
+#include "Character/Abilities/CharacterAbilitySystemComponent.h"// Include for FGameplayAbilitySpecHandle
 #include "InputAction.h" 
 #include <ClassRoguelike/ClassRoguelike.h>
 #include "CharacterBase.generated.h"
@@ -62,8 +64,11 @@ protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
-    TWeakObjectPtr<class UCharacterAbilitySystemComponent> AbilitySystemComponent;
-    TWeakObjectPtr<class UCharacterAttributeSetBase> AttributeSetBase;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
+    UCharacterAbilitySystemComponent* AbilitySystemComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
+    UCharacterAttributeSetBase* AttributeSetBase;
 
     FGameplayTag DeadTag;
     FGameplayTag EffectRemoveOnDeathTag;

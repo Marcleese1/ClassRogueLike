@@ -12,6 +12,9 @@ ACharacterBase::ACharacterBase(const class FObjectInitializer& ObjectInitializer
     // Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
+    AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+    AttributeSetBase = CreateDefaultSubobject<UCharacterAttributeSetBase>(TEXT("AttributeSetBase"));
+
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Overlap);
 
     bAlwaysRelevant = true;
@@ -21,7 +24,7 @@ ACharacterBase::ACharacterBase(const class FObjectInitializer& ObjectInitializer
 }
 
 UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const {
-    return AbilitySystemComponent.Get();
+    return AbilitySystemComponent;
 }
 
 // Called when the game starts or when spawned
@@ -42,7 +45,7 @@ int32 ACharacterBase::GetAbilityLevel(BaseAbilityID AbilityID) const
 
 void ACharacterBase::RemoveCharacterAbilities()
 {
-    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || !AbilitySystemComponent->CharacterAbilitiesGiven) {
+    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || !AbilitySystemComponent->CharacterAbilitiesGiven) {
         return;
     }
 
@@ -72,7 +75,7 @@ void ACharacterBase::RemoveCharacterAbilities()
 
 float ACharacterBase::GetCharacterLevel() const
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         return AttributeSetBase->GetLevel();
     }
 
@@ -81,7 +84,7 @@ float ACharacterBase::GetCharacterLevel() const
 
 float ACharacterBase::GetHealth() const
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         return AttributeSetBase->GetHealth();
     }
 
@@ -90,7 +93,7 @@ float ACharacterBase::GetHealth() const
 
 float ACharacterBase::GetMana() const
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         return AttributeSetBase->GetMana();
     }
 
@@ -99,7 +102,7 @@ float ACharacterBase::GetMana() const
 
 float ACharacterBase::GetMaxHealth() const
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         return AttributeSetBase->GetMaxHealth();
     }
 
@@ -108,7 +111,7 @@ float ACharacterBase::GetMaxHealth() const
 
 float ACharacterBase::GetMaxMana() const
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         return AttributeSetBase->GetMaxMana();
     }
 
@@ -124,7 +127,7 @@ void ACharacterBase::Die()
 
     OnCharacterDied.Broadcast(this);
 
-    if (AbilitySystemComponent.IsValid()) {
+    if (AbilitySystemComponent) {
         AbilitySystemComponent->CancelAbilities();
 
         FGameplayTagContainer EffectsTagsToRemove;
@@ -143,7 +146,7 @@ void ACharacterBase::Die()
 
 void ACharacterBase::AddCharacterAbilities()
 {
-    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->CharacterAbilitiesGiven) {
+    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || AbilitySystemComponent->CharacterAbilitiesGiven) {
         return;
     }
 
@@ -167,7 +170,7 @@ void ACharacterBase::AddCharacterAbilities()
 
 void ACharacterBase::InitializeAttributes()
 {
-    if (!AbilitySystemComponent.IsValid())
+    if (!AbilitySystemComponent)
     {
         return;
     }
@@ -182,13 +185,13 @@ void ACharacterBase::InitializeAttributes()
     FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, GetCharacterLevel(), EffectContext);
     if (NewHandle.IsValid())
     {
-        FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+        FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
     }
 }
 
 void ACharacterBase::AddStartupEffects()
 {
-    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->StartupEffectsApplied) {
+    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || AbilitySystemComponent->StartupEffectsApplied) {
         return;
     }
     FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
@@ -199,7 +202,7 @@ void ACharacterBase::AddStartupEffects()
         FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext);
         if (NewHandle.IsValid())
         {
-            FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+            FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
         }
     }
 
@@ -208,14 +211,14 @@ void ACharacterBase::AddStartupEffects()
 
 void ACharacterBase::SetHealth(float Health)
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         AttributeSetBase->SetHealth(Health);
     }
 }
 
 void ACharacterBase::SetMana(float Mana)
 {
-    if (AttributeSetBase.IsValid()) {
+    if (AttributeSetBase) {
         AttributeSetBase->SetMana(Mana);
     }
 }
