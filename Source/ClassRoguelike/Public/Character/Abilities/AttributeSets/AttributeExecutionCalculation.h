@@ -9,13 +9,13 @@
 /**
  * 
  */
-//UCLASS()
-//class CLASSROGUELIKE_API UAttributeExecutionCalculation : public UGameplayEffectExecutionCalculation
-//{
-//    GENERATED_BODY()
-//
-//public:
-//    UAttributeExecutionCalculation();
-//
-//    virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
-//};
+UCLASS()
+class CLASSROGUELIKE_API UAttributeExecutionCalculation : public UGameplayEffectExecutionCalculation
+{
+    GENERATED_BODY()
+
+public:
+    UAttributeExecutionCalculation();
+
+    virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+};
