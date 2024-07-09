@@ -8,5 +8,9 @@ public class ClassRoguelikeTarget : TargetRules
         Type = TargetType.Game;
         DefaultBuildSettings = BuildSettingsVersion.V2;
         ExtraModuleNames.AddRange(new string[] { "ClassRoguelike" });
+
+
+        // Ensure a unique build environment
+        bOverrideBuildEnvironment = true;
     }
 }
