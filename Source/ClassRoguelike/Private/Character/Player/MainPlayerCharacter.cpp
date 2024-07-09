@@ -260,7 +260,6 @@ void AMainPlayerCharacter::InitializeStartingValues(AMainPlayerState* PS)
     InitializeAttributes();
     SetHealth(GetMaxHealth());
     SetMana(GetMaxMana());
-    SetStamina(GetMaxStamina());
 }
 
 void AMainPlayerCharacter::BindASCInput()

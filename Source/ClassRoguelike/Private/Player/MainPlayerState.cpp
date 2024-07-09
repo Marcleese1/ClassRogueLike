@@ -59,16 +59,6 @@ float AMainPlayerState::GetMaxMana() const
 	return AttributeSetBase->GetMaxMana();
 }
 
-float AMainPlayerState::GetStamina() const
-{
-	return AttributeSetBase->GetStamina();
-}
-
-float AMainPlayerState::GetMaxStamina() const
-{
-	return AttributeSetBase->GetMaxStamina();
-}
-
 int32 AMainPlayerState::GetCharacterLevel() const
 {
 	return AttributeSetBase->GetLevel();
@@ -108,15 +98,6 @@ void AMainPlayerState::ManaChanged(const FOnAttributeChangeData& Data)
 void AMainPlayerState::MaxManaChanged(const FOnAttributeChangeData& Data)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Max Mana Changed"));
-}
-void AMainPlayerState::StaminaChanged(const FOnAttributeChangeData& Data)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Stamina Changed"));
-}
-
-void AMainPlayerState::MaxStaminaChanged(const FOnAttributeChangeData& Data)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Max Stamina Changed"));
 }
 
 void AMainPlayerState::CharacterLevelChanged(const FOnAttributeChangeData& Data)

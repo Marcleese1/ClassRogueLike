@@ -58,13 +58,7 @@ public:
     float GetMana() const;
 
     UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character|Attributes")
-    float GetMaxMana() const;    
-    
-    UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character|Attributes")
-    float GetStamina() const;
-
-    UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character|Attributes")
-    float GetMaxStamina() const;
+    float GetMaxMana() const;
 
 protected:
     // Called when the game starts or when spawned
@@ -106,6 +100,4 @@ protected:
     virtual void SetHealth(float Health);
 
     virtual void SetMana(float Mana);
-
-    virtual void SetStamina(float Stamina);
 };

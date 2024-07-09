@@ -116,25 +116,6 @@ float ACharacterBase::GetMaxMana() const
     }
 
     return 0.0f;
-
-}
-
-float ACharacterBase::GetStamina() const
-{
-    if (AttributeSetBase) {
-        return AttributeSetBase->GetMana();
-    }
-
-    return 0.0f;
-}
-
-float ACharacterBase::GetMaxStamina() const
-{
-	if (AttributeSetBase) {
-		return AttributeSetBase->GetMaxStamina();
-	}
-
-	return 0.0f;
 }
 
 void ACharacterBase::Die()
@@ -239,13 +220,6 @@ void ACharacterBase::SetMana(float Mana)
 {
     if (AttributeSetBase) {
         AttributeSetBase->SetMana(Mana);
-    }
-}
-
-void ACharacterBase::SetStamina(float Stamina)
-{
-    if (AttributeSetBase) {
-        AttributeSetBase->SetStamina(Stamina);
     }
 }
 

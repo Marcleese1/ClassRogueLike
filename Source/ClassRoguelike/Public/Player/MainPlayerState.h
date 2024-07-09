@@ -41,12 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
 	float GetMana() const;
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
-	float GetMaxMana() const;	
-	
-	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
-	float GetStamina() const;
-	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
-	float GetMaxStamina() const;
+	float GetMaxMana() const;
 
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
 	int32 GetCharacterLevel() const;
@@ -74,9 +69,7 @@ protected:
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
 	virtual void MaxHealthChanged(const FOnAttributeChangeData& Data);
 	virtual void ManaChanged(const FOnAttributeChangeData& Data);
-	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);	
-	virtual void StaminaChanged(const FOnAttributeChangeData& Data);
-	virtual void MaxStaminaChanged(const FOnAttributeChangeData& Data);
+	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);
 	virtual void CharacterLevelChanged(const FOnAttributeChangeData& Data);
 	 
 
