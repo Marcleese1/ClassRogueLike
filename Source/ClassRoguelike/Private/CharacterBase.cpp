@@ -87,8 +87,10 @@ float ACharacterBase::GetHealth() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetHealth();
     }
-
-    return 0.0f;
+    else
+    {
+        return EnemyAttributeSetBase->GetHealth();
+    }
 }
 
 float ACharacterBase::GetMana() const
@@ -105,8 +107,10 @@ float ACharacterBase::GetMaxHealth() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetMaxHealth();
     }
-
-    return 0.0f;
+    else
+    {
+        return EnemyAttributeSetBase->GetMaxHealth();
+    }
 }
 
 float ACharacterBase::GetMaxMana() const
@@ -114,6 +118,7 @@ float ACharacterBase::GetMaxMana() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetMaxMana();
     }
+
 
     return 0.0f;
 

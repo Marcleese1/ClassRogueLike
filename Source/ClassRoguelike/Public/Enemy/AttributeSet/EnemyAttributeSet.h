@@ -27,6 +27,10 @@ public:
     FGameplayAttributeData Health;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, Health)
 
+        UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth)
+    FGameplayAttributeData MaxHealth;
+    ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, MaxHealth)
+
         UPROPERTY(BlueprintReadOnly, Category = "Damage", ReplicatedUsing = OnRep_Damage)
     FGameplayAttributeData Damage;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, Damage)
@@ -35,14 +39,18 @@ public:
     FGameplayAttributeData MovementSpeed;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, MovementSpeed)
 
-        UFUNCTION()
+        virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+    UFUNCTION()
     virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
+
+    UFUNCTION()
+    virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
 
     UFUNCTION()
     virtual void OnRep_Damage(const FGameplayAttributeData& OldDamage);
 
     UFUNCTION()
     virtual void OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed);
-
-    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
