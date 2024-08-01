@@ -7,20 +7,21 @@
 #include "EnhancedPlayerInput.h"
 
 // Sets default values
-ACharacterBase::ACharacterBase(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+// Sets default values
+ACharacterBase::ACharacterBase(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer) // Properly call the base class constructor
 {
-    // Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-    PrimaryActorTick.bCanEverTick = true;
-
+    // Initialize the ability system component
     AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
     AttributeSetBase = CreateDefaultSubobject<UCharacterAttributeSetBase>(TEXT("AttributeSetBase"));
 
-    GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Overlap);
+    // Set replication properties
+    AbilitySystemComponent->SetIsReplicated(true);
+    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
-    bAlwaysRelevant = true;
-
+    // Initialize default values and properties
     DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
-    EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("State.RemoveOnDeath"));
+    /*EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Effect.RemoveOnDeath"));*/
 }
 
 UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const {
@@ -87,10 +88,8 @@ float ACharacterBase::GetHealth() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetHealth();
     }
-    else
-    {
-        return EnemyAttributeSetBase->GetHealth();
-    }
+
+    return 0.0f;
 }
 
 float ACharacterBase::GetMana() const
@@ -107,10 +106,8 @@ float ACharacterBase::GetMaxHealth() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetMaxHealth();
     }
-    else
-    {
-        return EnemyAttributeSetBase->GetMaxHealth();
-    }
+
+    return 0.0f;
 }
 
 float ACharacterBase::GetMaxMana() const
@@ -118,7 +115,6 @@ float ACharacterBase::GetMaxMana() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetMaxMana();
     }
-
 
     return 0.0f;
 
@@ -135,11 +131,11 @@ float ACharacterBase::GetStamina() const
 
 float ACharacterBase::GetMaxStamina() const
 {
-	if (AttributeSetBase) {
-		return AttributeSetBase->GetMaxStamina();
-	}
+    if (AttributeSetBase) {
+        return AttributeSetBase->GetMaxStamina();
+    }
 
-	return 0.0f;
+    return 0.0f;
 }
 
 void ACharacterBase::Die()
@@ -210,6 +206,7 @@ void ACharacterBase::InitializeAttributes()
     if (NewHandle.IsValid())
     {
         FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
+
     }
 }
 
@@ -253,6 +250,28 @@ void ACharacterBase::SetStamina(float Stamina)
         AttributeSetBase->SetStamina(Stamina);
     }
 }
+
+//void ACharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
+//{
+//    float NewHealth = Data.NewValue;
+//
+//    UE_LOG(LogTemp, Log, TEXT("Health Changed: %f"), NewHealth);
+//
+//    // Update health bar, can be overridden in derived classes
+//    UpdateHealthBar();
+//
+//    // Handle death
+//    if (!IsAlive() && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
+//    {
+//        Die();
+//    }
+//}
+
+//void ACharacterBase::UpdateHealthBar()
+//{
+//    // Placeholder for update logic, should be overridden in subclasses if needed
+//    // This is where ABP_Enemy can override to update specific UI elements
+//}
 
 void ACharacterBase::FinishDying()
 {

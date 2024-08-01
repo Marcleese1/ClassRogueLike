@@ -5,22 +5,16 @@
 #include "AbilitySystemComponent.h"
 #include "CharacterAttributeSetBase.generated.h"
 
-// Uses macros from AttributeSet.h
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
     GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
     GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
     GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
     GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-/**
- *
- */
 UCLASS()
 class CLASSROGUELIKE_API UCharacterAttributeSetBase : public UAttributeSet
 {
     GENERATED_BODY()
-
-
 
 public:
     UCharacterAttributeSetBase();
@@ -72,6 +66,9 @@ public:
         UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_MovementSpeed)
     FGameplayAttributeData MovementSpeed;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSetBase, MovementSpeed)
+
+        UFUNCTION()
+    void LogAttributeValues() const;
 
 protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

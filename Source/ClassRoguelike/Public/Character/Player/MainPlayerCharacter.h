@@ -10,10 +10,10 @@
 #include "InputActionValue.h"
 #include "MainPlayerCharacter.generated.h"
 /**
- * 
+ *
  */
 UCLASS()
-class CLASSROGUELIKE_API AMainPlayerCharacter : public ACharacterBase 
+class CLASSROGUELIKE_API AMainPlayerCharacter : public ACharacterBase
 {
 	GENERATED_BODY()
 

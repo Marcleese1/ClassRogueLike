@@ -7,13 +7,12 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "GameplayAbilitySpec.h" 
+#include "GameplayEffectTypes.h"
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
-#include "Enemy/AttributeSet/EnemyAttributeSet.h"
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"// Include for FGameplayAbilitySpecHandle
 #include "InputAction.h" 
 #include <ClassRoguelike/ClassRoguelike.h>
 #include "CharacterBase.generated.h"
-
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDiedDelegate, ACharacterBase*, Character);
@@ -22,16 +21,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDiedDelegate, ACharacterBa
 UCLASS()
 class CLASSROGUELIKE_API ACharacterBase : public ACharacter, public IAbilitySystemInterface
 {
-	GENERATED_BODY()
-
+    GENERATED_BODY()
 
 public:
     // Sets default values for this character's properties
-    ACharacterBase(const class FObjectInitializer& ObjectInitializer);
+    ACharacterBase(const FObjectInitializer& ObjectInitializer);
 
-    // Default constructor
-    ACharacterBase();
-
+    // This needs to be implemented when using IAbilitySystemInterface
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
     UPROPERTY(BlueprintAssignable, Category = "ClassRoguelike|Character")
@@ -44,7 +40,10 @@ public:
     virtual int32 GetAbilityLevel(BaseAbilityID AbilityID) const;
 
     virtual void RemoveCharacterAbilities();
+
     virtual void Die();
+
+    UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character")
     virtual void FinishDying();
 
     UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character|Attributes")
@@ -69,6 +68,7 @@ public:
     float GetMaxStamina() const;
 
 protected:
+    // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
@@ -76,9 +76,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
     UCharacterAttributeSetBase* AttributeSetBase;
-    
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-    UEnemyAttributeSet* EnemyAttributeSetBase;
 
     FGameplayTag DeadTag;
     FGameplayTag EffectRemoveOnDeathTag;
@@ -102,9 +99,22 @@ protected:
     TMap<UInputAction*, FGameplayAbilitySpecHandle> InputToAbilityMap;
 
     virtual void AddCharacterAbilities();
+
     virtual void InitializeAttributes();
+
     virtual void AddStartupEffects();
+
     virtual void SetHealth(float Health);
+
     virtual void SetMana(float Mana);
+
     virtual void SetStamina(float Stamina);
+
+    // Add OnHealthChanged function
+    //UFUNCTION()
+    //virtual void OnHealthChanged(const FOnAttributeChangeData& Data);  // Fixed signature
+
+    //// Add UpdateHealthBar function to be overridden by subclasses
+    //UFUNCTION()
+    //virtual void UpdateHealthBar();
 };
