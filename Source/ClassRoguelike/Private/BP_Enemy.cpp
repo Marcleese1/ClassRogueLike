@@ -15,6 +15,10 @@ ABP_Enemy::ABP_Enemy(const class FObjectInitializer& ObjectInitializer) : AChara
 {
     PrimaryActorTick.bCanEverTick = false;
 
+    UCapsuleComponent* PunchCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PunchCollision"));
+    PunchCollision->SetupAttachment(RootComponent);
+    PunchCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+
     // Initialize the Ability System Component
     if(!AbilitySystemComponent){
             AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
