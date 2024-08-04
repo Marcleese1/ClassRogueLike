@@ -15,6 +15,10 @@ ABP_Enemy::ABP_Enemy(const class FObjectInitializer& ObjectInitializer) : AChara
 {
     PrimaryActorTick.bCanEverTick = false;
 
+    UCapsuleComponent* PunchCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PunchCollision"));
+    PunchCollision->SetupAttachment(RootComponent);
+    PunchCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+
     // Initialize the Ability System Component
     if(!AbilitySystemComponent){
             AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
@@ -120,4 +124,20 @@ void ABP_Enemy::Die()
 void ABP_Enemy::FinishDying()
 {
     Destroy();
+}
+
+
+void ABP_Enemy::OnSeePawn(APawn* Pawn)
+{
+    if (Cast<ABP_PlayerCharacter>(Pawn))
+    {
+        // Get AI Controller
+        AAIController* AIController = Cast<AAIController>(GetController());
+        if (AIController)
+        {
+            // Set Blackboard values
+            AIController->GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), Pawn->GetActorLocation());
+            AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("CanSeePlayer"), true);
+        }
+    }
 }
