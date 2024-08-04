@@ -43,4 +43,5 @@ protected:
     virtual void Die() override;
 
     virtual void FinishDying() override;
+    void OnSeePawn(APawn* Pawn);
 };

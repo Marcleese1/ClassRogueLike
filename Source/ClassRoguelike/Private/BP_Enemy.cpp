@@ -125,3 +125,19 @@ void ABP_Enemy::FinishDying()
 {
     Destroy();
 }
+
+
+void ABP_Enemy::OnSeePawn(APawn* Pawn)
+{
+    if (Cast<ABP_PlayerCharacter>(Pawn))
+    {
+        // Get AI Controller
+        AAIController* AIController = Cast<AAIController>(GetController());
+        if (AIController)
+        {
+            // Set Blackboard values
+            AIController->GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), Pawn->GetActorLocation());
+            AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("CanSeePlayer"), true);
+        }
+    }
+}
