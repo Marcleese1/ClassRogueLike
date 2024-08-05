@@ -1,10 +1,10 @@
 #pragma once
-//
+
 #include "CoreMinimal.h"
 #include "CharacterBase.h"
 #include "GameplayEffectTypes.h"
 #include "BP_Enemy.generated.h"
-//
+
 class UCharacterAbilitySystemComponent;
 class UCharacterAttributeSetBase;
 class UBP_EnemyHealthBarWidget;
@@ -18,14 +18,11 @@ class CLASSROGUELIKE_API ABP_Enemy : public ACharacterBase
 public:
     ABP_Enemy(const FObjectInitializer& ObjectInitializer);
 
+    // Override the Tick function
+    virtual void Tick(float DeltaTime) override;
+
 protected:
     virtual void BeginPlay() override;
-
-   /* UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-    UCharacterAbilitySystemComponent* AbilitySystemComponent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-    UCharacterAttributeSetBase* AttributeSetBase;*/
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
     UWidgetComponent* UIFloatingStatusBarComponent;
@@ -43,5 +40,13 @@ protected:
     virtual void Die() override;
 
     virtual void FinishDying() override;
-    void OnSeePawn(APawn* Pawn);
+
+    // New variables for rotation
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
+    float RotationSpeed;
+
+    FRotator TargetRotation;
+
+    // Function to set the target rotation
+    void UpdateTargetRotation();
 };
