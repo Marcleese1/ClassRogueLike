@@ -13,17 +13,17 @@ DEFINE_LOG_CATEGORY_STATIC(LogBP_Enemy, Log, All);
 
 ABP_Enemy::ABP_Enemy(const class FObjectInitializer& ObjectInitializer) : ACharacterBase(ObjectInitializer)
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;  // Enable ticking
 
     UCapsuleComponent* PunchCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PunchCollision"));
     PunchCollision->SetupAttachment(RootComponent);
     PunchCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
     // Initialize the Ability System Component
-    if(!AbilitySystemComponent){
-            AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-            AbilitySystemComponent->SetIsReplicated(true);
-            AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+    if (!AbilitySystemComponent) {
+        AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+        AbilitySystemComponent->SetIsReplicated(true);
+        AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
     }
 
     // Initialize the Attribute Set
@@ -43,6 +43,10 @@ ABP_Enemy::ABP_Enemy(const class FObjectInitializer& ObjectInitializer) : AChara
     {
         UE_LOG(LogBP_Enemy, Error, TEXT("%s() Failed to find UIFloatingStatusBarClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
     }
+
+    // Initialize rotation variables
+    RotationSpeed = 5.0f;  // Adjust rotation speed as needed
+    TargetRotation = FRotator::ZeroRotator;
 }
 
 void ABP_Enemy::BeginPlay()
@@ -70,21 +74,64 @@ void ABP_Enemy::BeginPlay()
                     UIFloatingStatusBar->SetHealthPercentage(HealthPercentage);
 
                     // Debug log
-                    
+
                 }
             }
         }
+
+        // Bind health change
+        HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+            AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABP_Enemy::OnHealthChanged);
     }
 }
 
+void ABP_Enemy::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
 
+    // Update target rotation based on logic (e.g., player position or direction)
+    UpdateTargetRotation();
 
+    // Smoothly interpolate to the target rotation
+    FRotator CurrentRotation = GetActorRotation();
+    FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, RotationSpeed);
+    SetActorRotation(NewRotation);
+}
+
+void ABP_Enemy::UpdateTargetRotation()
+{
+    // Example: Rotate towards the player
+    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PC)
+    {
+        APawn* PlayerPawn = PC->GetPawn();
+        if (PlayerPawn)
+        {
+            FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
+            DirectionToPlayer.Z = 0;  // Ignore vertical difference
+            TargetRotation = DirectionToPlayer.Rotation();
+        }
+    }
+
+    // Alternatively, update rotation based on movement direction
+    // FVector MovementDirection = GetVelocity().GetSafeNormal();
+    // if (!MovementDirection.IsNearlyZero())
+    // {
+    //     TargetRotation = MovementDirection.Rotation();
+    // }
+}
 
 void ABP_Enemy::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
     float NewHealth = Data.NewValue;
 
     UE_LOG(LogTemp, Log, TEXT("Health Changed: %f"), NewHealth);
+
+    // Update floating status bar
+    if (UIFloatingStatusBar)
+    {
+        UIFloatingStatusBar->SetHealthPercentage(NewHealth / GetMaxHealth());
+    }
 
     // Directly handle health change logic
     if (!IsAlive() && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
@@ -124,20 +171,4 @@ void ABP_Enemy::Die()
 void ABP_Enemy::FinishDying()
 {
     Destroy();
-}
-
-
-void ABP_Enemy::OnSeePawn(APawn* Pawn)
-{
-    if (Cast<ABP_PlayerCharacter>(Pawn))
-    {
-        // Get AI Controller
-        AAIController* AIController = Cast<AAIController>(GetController());
-        if (AIController)
-        {
-            // Set Blackboard values
-            AIController->GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), Pawn->GetActorLocation());
-            AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("CanSeePlayer"), true);
-        }
-    }
 }
