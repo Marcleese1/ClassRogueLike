@@ -52,10 +52,6 @@
 		{
 			"Name": "MotionTrajectory",
 			"Enabled": true
-		},
-		{
-			"Name": "SkeletalMeshModelingTools",
-			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
