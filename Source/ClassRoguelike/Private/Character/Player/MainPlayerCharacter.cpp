@@ -10,7 +10,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
-#include "InputAction.h"
+#include "InputAction.h" 
+#include "GameplayEffect.h"            
+#include <BP_Enemy.h>
 
 AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -87,6 +89,12 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to load LookUpAction"));
     }
+
+    // Initialize attack collision component
+    AttackCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("AttackCollision"));
+    AttackCollision->SetupAttachment(GetMesh(), FName("WeaponSocket")); // Attach to the weapon or character mesh
+    AttackCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+    AttackCollision->SetGenerateOverlapEvents(false);  // Disable by default
 }
 
 void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -109,6 +117,9 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
         EnhancedInputComponent->BindAction(ConfirmTargetAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::HandleInputActionTriggered);
         EnhancedInputComponent->BindAction(ConfirmTargetAction, ETriggerEvent::Completed, this, &AMainPlayerCharacter::HandleInputActionCompleted);
+
+        // Bind the attack action to activate attack
+        EnhancedInputComponent->BindAction(UseAbilityAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::ActivateAttack);
     }
 
     BindASCInput();
@@ -190,6 +201,9 @@ void AMainPlayerCharacter::BeginPlay()
         // Bind input after ensuring the component is valid
         BindASCInput();
     }
+
+    // Bind overlap event
+    AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &AMainPlayerCharacter::OnAttackOverlapBegin);
 }
 
 void AMainPlayerCharacter::LookUp(const FInputActionValue& Value)
@@ -382,4 +396,40 @@ void AMainPlayerCharacter::ConfirmTarget(const FInputActionValue& Value)
             }
         }
     }
+}
+
+void AMainPlayerCharacter::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    //if (OtherActor && OtherActor != this && OtherComp)
+    //{
+    //    ABP_Enemy* Enemy = Cast<ABP_Enemy>(OtherActor);
+    //    if (Enemy)
+    //    {
+    //        // Apply existing gameplay effect for slash attack
+    //        FGameplayEffectSpecHandle DamageEffectSpec = AbilitySystemComponent->MakeOutgoingSpec(
+    //            USlashDamageGameplayEffect::StaticClass(), GetCharacterLevel(), AbilitySystemComponent->MakeEffectContext());
+
+    //        if (DamageEffectSpec.IsValid())
+    //        {
+    //            AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data.Get(), Enemy->GetAbilitySystemComponent());
+    //            UE_LOG(LogTemp, Warning, TEXT("Enemy hit with existing slash damage effect"));
+    //        }
+    //    }
+    //}
+}
+
+void AMainPlayerCharacter::ActivateAttack()
+{
+    // Enable the attack collision
+    AttackCollision->SetGenerateOverlapEvents(true);
+
+    // You can use a timer or animation notify to disable the collision after a short duration
+    GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AMainPlayerCharacter::DeactivateAttack, 0.5f, false);
+}
+
+void AMainPlayerCharacter::DeactivateAttack()
+{
+    // Disable the attack collision
+    AttackCollision->SetGenerateOverlapEvents(false);
 }
