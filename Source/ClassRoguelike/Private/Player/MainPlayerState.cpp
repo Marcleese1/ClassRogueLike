@@ -78,7 +78,7 @@ void AMainPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(AbilitySystemComponent)
+	if (AbilitySystemComponent)
 	{
 		HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &AMainPlayerState::HealthChanged);
 		MaxHealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetMaxHealthAttribute()).AddUObject(this, &AMainPlayerState::MaxHealthChanged);
@@ -127,7 +127,7 @@ void AMainPlayerState::CharacterLevelChanged(const FOnAttributeChangeData& Data)
 void AMainPlayerState::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
 
-	if (NewCount > 0) 
+	if (NewCount > 0)
 	{
 		FGameplayTagContainer AbilityTagsToCancel;
 		AbilityTagsToCancel.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability")));

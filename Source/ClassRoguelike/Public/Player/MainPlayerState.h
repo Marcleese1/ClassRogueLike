@@ -10,7 +10,7 @@
 #include "MainPlayerState.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class CLASSROGUELIKE_API AMainPlayerState : public APlayerState, public IAbilitySystemInterface
@@ -23,7 +23,7 @@ public:
 	class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	class UCharacterAttributeSetBase* GetAttributeSetBase();
-	
+
 
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState")
 	bool IsAlive() const;
@@ -31,7 +31,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|UI")
 	void ShowAbilityConfirmCancelText(bool ShowText);
-	
+
 
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
 	float GetHealth() const;
@@ -41,8 +41,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
 	float GetMana() const;
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
-	float GetMaxMana() const;	
-	
+	float GetMaxMana() const;
+
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
 	float GetStamina() const;
 	UFUNCTION(BlueprintCallable, Category = "ClassRogueLike|MainPlayerState|Attributes")
@@ -74,11 +74,11 @@ protected:
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
 	virtual void MaxHealthChanged(const FOnAttributeChangeData& Data);
 	virtual void ManaChanged(const FOnAttributeChangeData& Data);
-	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);	
+	virtual void MaxManaChanged(const FOnAttributeChangeData& Data);
 	virtual void StaminaChanged(const FOnAttributeChangeData& Data);
 	virtual void MaxStaminaChanged(const FOnAttributeChangeData& Data);
 	virtual void CharacterLevelChanged(const FOnAttributeChangeData& Data);
-	 
+
 
 	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 };
