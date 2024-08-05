@@ -1,12 +1,9 @@
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
 #include "Net/UnrealNetwork.h"
-#include "GameFramework/Actor.h"
 
 UCharacterAttributeSetBase::UCharacterAttributeSetBase()
 {
-    Level.SetBaseValue(1.0f);
-    Level.SetCurrentValue(1.0f);
-
+    // Initialize attributes to some default values (these will be overridden by Gameplay Effects)
     Health.SetBaseValue(100.0f);
     Health.SetCurrentValue(100.0f);
 
@@ -31,10 +28,10 @@ UCharacterAttributeSetBase::UCharacterAttributeSetBase()
     DamageReduction.SetBaseValue(0.0f);
     DamageReduction.SetCurrentValue(0.0f);
 
-    CriticalHitDamage.SetBaseValue(2.0f);
+    CriticalHitDamage.SetBaseValue(2.0f);  // 200% damage on critical hit
     CriticalHitDamage.SetCurrentValue(2.0f);
 
-    CriticalHitChance.SetBaseValue(0.1f);
+    CriticalHitChance.SetBaseValue(0.1f);  // 10% chance to critically hit
     CriticalHitChance.SetCurrentValue(0.1f);
 
     MovementSpeed.SetBaseValue(600.0f);
@@ -111,21 +108,4 @@ void UCharacterAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProp
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, CriticalHitDamage, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, CriticalHitChance, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, MovementSpeed, COND_None, REPNOTIFY_Always);
-}
-
-void UCharacterAttributeSetBase::LogAttributeValues() const
-{
-    UE_LOG(LogTemp, Log, TEXT("Logging Attribute Values for %s"), *GetOwningActor()->GetName());
-    UE_LOG(LogTemp, Log, TEXT("Level: %f"), Level.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("Health: %f"), Health.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("MaxHealth: %f"), MaxHealth.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("Mana: %f"), Mana.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("MaxMana: %f"), MaxMana.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("Stamina: %f"), Stamina.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("MaxStamina: %f"), MaxStamina.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("Damage: %f"), Damage.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("DamageReduction: %f"), DamageReduction.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("CriticalHitDamage: %f"), CriticalHitDamage.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("CriticalHitChance: %f"), CriticalHitChance.GetCurrentValue());
-    UE_LOG(LogTemp, Log, TEXT("MovementSpeed: %f"), MovementSpeed.GetCurrentValue());
 }

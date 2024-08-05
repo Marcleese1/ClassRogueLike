@@ -7,7 +7,6 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "GameplayAbilitySpec.h" 
-#include "GameplayEffectTypes.h"
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"// Include for FGameplayAbilitySpecHandle
 #include "InputAction.h" 
@@ -21,11 +20,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDiedDelegate, ACharacterBa
 UCLASS()
 class CLASSROGUELIKE_API ACharacterBase : public ACharacter, public IAbilitySystemInterface
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
     // Sets default values for this character's properties
-    ACharacterBase(const FObjectInitializer& ObjectInitializer);
+    ACharacterBase(const class FObjectInitializer& ObjectInitializer);
 
     // This needs to be implemented when using IAbilitySystemInterface
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -59,8 +58,8 @@ public:
     float GetMana() const;
 
     UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character|Attributes")
-    float GetMaxMana() const;
-
+    float GetMaxMana() const;    
+    
     UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character|Attributes")
     float GetStamina() const;
 
@@ -109,12 +108,4 @@ protected:
     virtual void SetMana(float Mana);
 
     virtual void SetStamina(float Stamina);
-
-    // Add OnHealthChanged function
-    //UFUNCTION()
-    //virtual void OnHealthChanged(const FOnAttributeChangeData& Data);  // Fixed signature
-
-    //// Add UpdateHealthBar function to be overridden by subclasses
-    //UFUNCTION()
-    //virtual void UpdateHealthBar();
 };

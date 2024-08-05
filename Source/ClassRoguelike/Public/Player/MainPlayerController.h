@@ -7,7 +7,7 @@
 #include "MainPlayerController.generated.h"
 
 /**
- *
+ * 
  */
 UCLASS()
 class CLASSROGUELIKE_API AMainPlayerController : public APlayerController
