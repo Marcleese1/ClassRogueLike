@@ -73,6 +73,8 @@ public:
 protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
     UFUNCTION()
     virtual void OnRep_Level(const FGameplayAttributeData& OldLevel);
 

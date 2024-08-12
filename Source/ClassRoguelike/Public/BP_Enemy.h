@@ -21,6 +21,8 @@ public:
     // Override the Tick function
     virtual void Tick(float DeltaTime) override;
 
+    virtual void Die() override;
+
 protected:
     virtual void BeginPlay() override;
 
@@ -37,7 +39,7 @@ protected:
 
     FDelegateHandle HealthChangedDelegateHandle;
 
-    virtual void Die() override;
+    
 
     virtual void FinishDying() override;
 

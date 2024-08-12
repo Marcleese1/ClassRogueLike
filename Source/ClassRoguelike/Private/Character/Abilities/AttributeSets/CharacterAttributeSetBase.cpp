@@ -1,6 +1,11 @@
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/Actor.h"
+#include "GameplayEffect.h"
+#include "GameplayEffectExtension.h"
+#include "BP_Enemy.h"
+#include "CharacterBase.h" // Ensure this is included to reference player-specific logic
+#include <Character/Player/MainPlayerCharacter.h>
 
 UCharacterAttributeSetBase::UCharacterAttributeSetBase()
 {
@@ -40,6 +45,39 @@ UCharacterAttributeSetBase::UCharacterAttributeSetBase()
     MovementSpeed.SetBaseValue(600.0f);
     MovementSpeed.SetCurrentValue(600.0f);
 }
+
+void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+    Super::PostGameplayEffectExecute(Data);
+
+    if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+    {
+        // Decrease health by the damage amount
+        const float DamageDone = GetDamage();
+        SetHealth(FMath::Clamp(GetHealth() - DamageDone, 0.0f, GetMaxHealth()));
+
+        // Reset Damage attribute
+        SetDamage(0.0f);
+
+        // Check if health reached zero
+        AActor* OwningActor = GetOwningActor();
+        if (GetHealth() <= 0)
+        {
+            if (ABP_Enemy* Enemy = Cast<ABP_Enemy>(OwningActor))
+            {
+                Enemy->Die();
+            }
+            else if (AMainPlayerCharacter* Player = Cast<AMainPlayerCharacter>(OwningActor))
+            {
+                Player->Die();
+            }
+            // Handle other cases or actors if needed in the future
+        }
+    }
+}
+
+
+// The rest of the replication functions and attribute changes notifications remain the same
 
 void UCharacterAttributeSetBase::OnRep_Level(const FGameplayAttributeData& OldLevel)
 {
