@@ -28,7 +28,7 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
     FighterAbilitiesMappingContext = FighterAbilitiesMappingContextFinder.Object;
 
     static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/Input/IA_StartTargeting.IA_StartTargeting"));
-    StartTargetingAction = StartTargetingActionFinder.Object;
+    StartTargetingAction = StartTargetingActionFinder.Object; 
 
     static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/Input/IA_Confirm.IA_Confirm"));
     ConfirmTargetAction = ConfirmTargetActionFinder.Object;
@@ -364,6 +364,7 @@ void AMainPlayerCharacter::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedC
     //    }
     //}
 }
+
 
 void AMainPlayerCharacter::ActivateAttack()
 {

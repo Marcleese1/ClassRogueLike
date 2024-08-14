@@ -41,6 +41,7 @@ public:
 
     virtual void RemoveCharacterAbilities();
 
+    UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character")
     virtual void Die();
 
     UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character")

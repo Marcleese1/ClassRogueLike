@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "CharacterBase.h"
 #include "GameplayEffectTypes.h"
 #include "BP_Enemy.generated.h"
@@ -20,7 +21,7 @@ public:
 
     // Override the Tick function
     virtual void Tick(float DeltaTime) override;
-
+    //UFUNCTION(BlueprintCallable, Category = "Enemy")
     virtual void Die() override;
 
 protected:
@@ -51,4 +52,8 @@ protected:
 
     // Function to set the target rotation
     void UpdateTargetRotation();
+
+
+    //// New function to safely handle enemy interaction
+    //bool IsEnemyValid() const;
 };

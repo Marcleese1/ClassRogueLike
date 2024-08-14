@@ -251,28 +251,6 @@ void ACharacterBase::SetStamina(float Stamina)
     }
 }
 
-//void ACharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
-//{
-//    float NewHealth = Data.NewValue;
-//
-//    UE_LOG(LogTemp, Log, TEXT("Health Changed: %f"), NewHealth);
-//
-//    // Update health bar, can be overridden in derived classes
-//    UpdateHealthBar();
-//
-//    // Handle death
-//    if (!IsAlive() && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
-//    {
-//        Die();
-//    }
-//}
-
-//void ACharacterBase::UpdateHealthBar()
-//{
-//    // Placeholder for update logic, should be overridden in subclasses if needed
-//    // This is where ABP_Enemy can override to update specific UI elements
-//}
-
 void ACharacterBase::FinishDying()
 {
     Destroy();
