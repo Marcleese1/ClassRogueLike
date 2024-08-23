@@ -56,6 +56,14 @@
 		{
 			"Name": "SkeletalMeshModelingTools",
 			"Enabled": true
+		},
+		{
+			"Name": "MotionWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationWarping",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

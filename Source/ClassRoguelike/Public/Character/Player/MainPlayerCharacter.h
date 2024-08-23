@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"// Include necessary headers
+#include "MotionWarpingComponent.h"
 #include "MainPlayerCharacter.generated.h"
 
 UCLASS()

@@ -4,6 +4,7 @@
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"
 #include "Character/Abilities/CharacterGameplayAbility.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MotionWarpingComponent.h"
 #include "EnhancedPlayerInput.h"
 
 // Sets default values
@@ -14,6 +15,9 @@ ACharacterBase::ACharacterBase(const FObjectInitializer& ObjectInitializer)
     // Initialize the ability system component
     AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
     AttributeSetBase = CreateDefaultSubobject<UCharacterAttributeSetBase>(TEXT("AttributeSetBase"));
+
+    // Initialize the Motion Warping Component
+    MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
     // Set replication properties
     AbilitySystemComponent->SetIsReplicated(true);

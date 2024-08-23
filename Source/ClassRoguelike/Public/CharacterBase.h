@@ -11,6 +11,7 @@
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"// Include for FGameplayAbilitySpecHandle
 #include "InputAction.h" 
+#include "MotionWarpingComponent.h"
 #include <ClassRoguelike/ClassRoguelike.h>
 #include "CharacterBase.generated.h"
 
@@ -29,6 +30,9 @@ public:
 
     // This needs to be implemented when using IAbilitySystemInterface
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Motion Warping", meta = (AllowPrivateAccess = "true"))
+    class UMotionWarpingComponent* MotionWarpingComponent;
 
     UPROPERTY(BlueprintAssignable, Category = "ClassRoguelike|Character")
     FCharacterDiedDelegate OnCharacterDied;

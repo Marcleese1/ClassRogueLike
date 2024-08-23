@@ -17,6 +17,10 @@
 AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
+
+   
+
+
     // Initialize input actions and contexts
     static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/Game/Input/IA_UseAbility.IA_UseAbility"));
     UseAbilityAction = UseAbilityActionFinder.Object;

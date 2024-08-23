@@ -137,49 +137,6 @@ void ABP_Enemy::Die()
     Super::Die();
 }
 
-//void ABP_Enemy::Die()
-//{
-//    // Exit early if the object is invalid or already marked as dead.
-//    if (!IsValid(this) || AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
-//    {
-//        return;
-//    }
-//
-//    // Broadcast death event so other systems can stop referencing this actor
-//    OnCharacterDied.Broadcast(this);
-//
-//    RemoveCharacterAbilities();
-//    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-//    GetCharacterMovement()->GravityScale = 0;
-//    GetCharacterMovement()->Velocity = FVector(0);
-//
-//    if (AbilitySystemComponent)
-//    {
-//        AbilitySystemComponent->CancelAllAbilities();
-//
-//        FGameplayTagContainer EffectsTagsToRemove;
-//        EffectsTagsToRemove.AddTag(EffectRemoveOnDeathTag);
-//        AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectsTagsToRemove);
-//
-//        AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
-//    }
-//
-//    if (DeathMontage)
-//    {
-//        // Use a timer to delay the destruction, ensuring no immediate issues with references.
-//        GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ABP_Enemy::FinishDying);
-//        PlayAnimMontage(DeathMontage);
-//    }
-//    else
-//    {
-//        FinishDying();
-//    }
-//}
-
-//bool ABP_Enemy::IsEnemyValid() const
-//{
-//    return IsValid(this) && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag);
-//}
 
 void ABP_Enemy::FinishDying()
 {
