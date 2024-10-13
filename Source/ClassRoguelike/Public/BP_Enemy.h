@@ -1,15 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "CharacterBase.h"
-#include "GameplayEffectTypes.h"
+#include "Enemy/UI/BP_EnemyHealthBarWidget.h"
+#include "Components/WidgetComponent.h"
+#include "Character/Abilities/CharacterAbilitySystemComponent.h"
+#include "Enemy/AttributeSet/EnemyAttributeSet.h" // Include new EnemyAttributeSet
+#include "Enemy/EnemyAbilitySystemComponent.h" // Include custom Enemy Ability System Component
 #include "BP_Enemy.generated.h"
-
-class UCharacterAbilitySystemComponent;
-class UCharacterAttributeSetBase;
-class UBP_EnemyHealthBarWidget;
-class UWidgetComponent;
 
 UCLASS()
 class CLASSROGUELIKE_API ABP_Enemy : public ACharacterBase
@@ -19,16 +17,46 @@ class CLASSROGUELIKE_API ABP_Enemy : public ACharacterBase
 public:
     ABP_Enemy(const FObjectInitializer& ObjectInitializer);
 
-    // Override the Tick function
-    virtual void Tick(float DeltaTime) override;
-    //UFUNCTION(BlueprintCallable, Category = "Enemy")
-    virtual void Die() override;
+    // Getters
+    UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+    UEnemyAttributeSet* GetAttributeSetBase() const; // Update to UEnemyAttributeSet
+    virtual void Die();
+
+    void UpdateTargetRotation();
+
+    void FinishDying();
+
+    void SetHealth(float HealthValue) override;
+
+    float GetMaxHealth() const;
+
+    float GetHealth() const;
 
 protected:
     virtual void BeginPlay() override;
 
+    void Tick(float DeltaTime);
+
+    // Ability System Component and Attribute Set
+    UPROPERTY(BlueprintReadOnly)
+    UEnemyAbilitySystemComponent* EnemyAbilitySystemComponent;
+
+    UPROPERTY(BlueprintReadOnly)
+    UEnemyAttributeSet* EnemyAttributeSet; // Update to UEnemyAttributeSet
+
+    // Attribute Gameplay Effect
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+    TSubclassOf<UGameplayEffect> DefaultAttributesForEnemies;
+
+    // UI Health Bar
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
     UWidgetComponent* UIFloatingStatusBarComponent;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+    float InitialHealth;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+    float InitialMaxHealth;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
     TSubclassOf<UBP_EnemyHealthBarWidget> UIFloatingStatusBarClass;
@@ -36,24 +64,23 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = "UI")
     UBP_EnemyHealthBarWidget* UIFloatingStatusBar;
 
-    virtual void OnHealthChanged(const FOnAttributeChangeData& Data);
+    // Other variables
+    TArray<TSubclassOf<UGameplayEffect>> EnemyStartupEffects;
 
-    FDelegateHandle HealthChangedDelegateHandle;
-
-    
-
-    virtual void FinishDying() override;
-
-    // New variables for rotation
+    // Rotation variables
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
     float RotationSpeed;
 
     FRotator TargetRotation;
 
-    // Function to set the target rotation
-    void UpdateTargetRotation();
+    FDelegateHandle HealthChangedDelegateHandle;
+    FDelegateHandle MaxHealthChangedDelegateHandle;
+    FGameplayTag DeadTag;
 
-
-    //// New function to safely handle enemy interaction
-    //bool IsEnemyValid() const;
+    // Functions
+    void InitializeAttributes();
+    void AddStartupEffects();
+    void UpdateHealthBar();
+    void OnHealthChanged(const FOnAttributeChangeData& Data);
+    void OnMaxHealthChangedDelegate(const FOnAttributeChangeData& Data);
 };

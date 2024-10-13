@@ -229,7 +229,7 @@ void AMainPlayerCharacter::MoveRight(const FInputActionValue& Value)
 
 void AMainPlayerCharacter::OnRep_PlayerState()
 {
-    Super::OnRep_PlayerState();
+    Super::OnRep_PlayerState(); // Call the base class implementation
     if (!ASCInputBound)
     {
         BindASCInput();
@@ -352,21 +352,21 @@ void AMainPlayerCharacter::ConfirmTarget(const FInputActionValue& Value)
 void AMainPlayerCharacter::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    //if (OtherActor && OtherActor != this && OtherComp)
-    //{
-    //    ABP_Enemy* Enemy = Cast<ABP_Enemy>(OtherActor);
-    //    if (Enemy)
-    //    {
-    //        FGameplayEffectSpecHandle DamageEffectSpec = AbilitySystemComponent->MakeOutgoingSpec(
-    //            USlashDamageGameplayEffect::StaticClass(), GetCharacterLevel(), AbilitySystemComponent->MakeEffectContext());
+    /*if (OtherActor && OtherActor != this && OtherComp)
+    {
+        ABP_Enemy* Enemy = Cast<ABP_Enemy>(OtherActor);
+        if (Enemy)
+        {
+            FGameplayEffectSpecHandle DamageEffectSpec = AbilitySystemComponent->MakeOutgoingSpec(
+                USlashDamageGameplayEffect::StaticClass(), GetCharacterLevel(), AbilitySystemComponent->MakeEffectContext());
 
-    //        if (DamageEffectSpec.IsValid())
-    //        {
-    //            AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data.Get(), Enemy->GetAbilitySystemComponent());
-    //            UE_LOG(LogTemp, Warning, TEXT("Enemy hit with existing slash damage effect"));
-    //        }
-    //    }
-    //}
+            if (DamageEffectSpec.IsValid())
+            {
+                AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data.Get(), Enemy->GetAbilitySystemComponent());
+                UE_LOG(LogTemp, Warning, TEXT("Enemy hit with existing slash damage effect"));
+            }
+        }
+    }*/
 }
 
 

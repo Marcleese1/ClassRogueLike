@@ -36,6 +36,7 @@ UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const {
 void ACharacterBase::BeginPlay()
 {
     Super::BeginPlay();
+
 }
 
 bool ACharacterBase::IsAlive() const
@@ -107,11 +108,7 @@ float ACharacterBase::GetMana() const
 
 float ACharacterBase::GetMaxHealth() const
 {
-    if (AttributeSetBase) {
-        return AttributeSetBase->GetMaxHealth();
-    }
-
-    return 0.0f;
+    return AttributeSetBase ? AttributeSetBase->GetMaxHealth() : 0.0f;
 }
 
 float ACharacterBase::GetMaxMana() const
@@ -192,33 +189,54 @@ void ACharacterBase::AddCharacterAbilities()
     AbilitySystemComponent->CharacterAbilitiesGiven = true;
 }
 
+
+
+// ACharacterBase.cpp
+
 void ACharacterBase::InitializeAttributes()
 {
     if (!AbilitySystemComponent)
     {
+        UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent is null!"));
         return;
     }
-    if (!DefaultAttributes)
+
+    if (!DefaultAttributes)  // Your default GameplayEffect for setting attributes
     {
-        UE_LOG(LogTemp, Error, TEXT("%s() Missing DefaultAttributes for %s. Please Fill in the Characters Blueprint."), *FString(__FUNCTION__), *GetName());
+        UE_LOG(LogTemp, Error, TEXT("DefaultAttributes GameplayEffect is missing in %s"), *GetName());
+        return;
     }
 
     FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
     EffectContext.AddSourceObject(this);
 
-    FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, GetCharacterLevel(), EffectContext);
-    if (NewHandle.IsValid())
+    FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, GetCharacterLevel(), EffectContext);
+    if (SpecHandle.IsValid())
     {
-        FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
-
+        FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+        if (ActiveGEHandle.IsValid())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("DefaultAttributes applied to %s"), *GetName());
+            // Ensure Health and MaxHealth are initialized
+            SetHealth(GetMaxHealth());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to apply DefaultAttributes to %s"), *GetName());
+        }
     }
 }
 
 void ACharacterBase::AddStartupEffects()
 {
-    if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || AbilitySystemComponent->StartupEffectsApplied) {
+    if (GetLocalRole() != ROLE_Authority) {
+        return;  // Make sure startup effects are applied only on the server.
+    }
+
+    if (!AbilitySystemComponent || AbilitySystemComponent->StartupEffectsApplied) {
         return;
     }
+
     FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
     EffectContext.AddSourceObject(this);
 
@@ -228,17 +246,42 @@ void ACharacterBase::AddStartupEffects()
         if (NewHandle.IsValid())
         {
             FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
+
+            // Check if the Gameplay Effect handle is valid
+            if (!ActiveGEHandle.IsValid())
+            {
+                UE_LOG(LogTemp, Error, TEXT("AddStartupEffects: Failed to apply GameplayEffectSpec on %s"), *GetName());
+                continue;  // Continue to the next effect if this one fails
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("AddStartupEffects: Successfully applied GameplayEffectSpec on %s"), *GetName());
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("AddStartupEffects: Failed to create outgoing spec for StartupEffect on %s"), *GetName());
         }
     }
 
     AbilitySystemComponent->StartupEffectsApplied = true;
 }
 
+
 void ACharacterBase::SetHealth(float Health)
 {
     if (AttributeSetBase) {
+        UE_LOG(LogTemp, Warning, TEXT("SetHealth called: Health set to %f"), Health);
         AttributeSetBase->SetHealth(Health);
     }
+}
+
+void ACharacterBase::SetMaxHealth(float MaxHealth)
+{
+	if (AttributeSetBase) {
+        UE_LOG(LogTemp, Warning, TEXT("SetMaxHealth called: MaxHealth set to %f"), MaxHealth);
+		AttributeSetBase->SetMaxHealth(MaxHealth);
+	}
 }
 
 void ACharacterBase::SetMana(float Mana)
@@ -247,6 +290,12 @@ void ACharacterBase::SetMana(float Mana)
         AttributeSetBase->SetMana(Mana);
     }
 }
+void ACharacterBase::SetMaxMana(float MaxMana)
+{
+	if (AttributeSetBase) {
+		AttributeSetBase->SetMaxMana(MaxMana);
+	}
+}
 
 void ACharacterBase::SetStamina(float Stamina)
 {
@@ -254,8 +303,15 @@ void ACharacterBase::SetStamina(float Stamina)
         AttributeSetBase->SetStamina(Stamina);
     }
 }
+void ACharacterBase::SetMaxStamina(float MaxStamina)
+{
+	if (AttributeSetBase) {
+		AttributeSetBase->SetMaxStamina(MaxStamina);
+	}
+}
 
 void ACharacterBase::FinishDying()
 {
+    SetLifeSpan(0.1f);
     Destroy();
 }

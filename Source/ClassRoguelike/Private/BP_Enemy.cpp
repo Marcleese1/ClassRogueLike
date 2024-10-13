@@ -1,51 +1,43 @@
 #include "BP_Enemy.h"
-#include "Character/Abilities/CharacterAbilitySystemComponent.h"
-#include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
+#include "Enemy/AttributeSet/EnemyAttributeSet.h"
+#include "GameplayEffect.h"
 #include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Enemy/UI/BP_EnemyHealthBarWidget.h"
 #include "Net/UnrealNetwork.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Enemy/EnemyAbilitySystemComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogBP_Enemy, Log, All);
 
-ABP_Enemy::ABP_Enemy(const class FObjectInitializer& ObjectInitializer) : ACharacterBase(ObjectInitializer)
+ABP_Enemy::ABP_Enemy(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer), InitialHealth(100.0f), InitialMaxHealth(100.0f)
 {
-    PrimaryActorTick.bCanEverTick = true;  // Enable ticking
+    // Create Ability System Component
+    EnemyAbilitySystemComponent = CreateDefaultSubobject<UEnemyAbilitySystemComponent>(TEXT("EnemyAbilitySystemComponent"));
+    EnemyAbilitySystemComponent->SetIsReplicated(true);
 
-    UCapsuleComponent* PunchCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PunchCollision"));
-    PunchCollision->SetupAttachment(RootComponent);
-    PunchCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-
-    // Initialize the Ability System Component
-    if (!AbilitySystemComponent) {
-        AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-        AbilitySystemComponent->SetIsReplicated(true);
-        AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+    // Create Attribute Set (updated to use UEnemyAttributeSet)
+    EnemyAttributeSet = CreateDefaultSubobject<UEnemyAttributeSet>(TEXT("EnemyAttributeSet"));
+    if (EnemyAbilitySystemComponent && EnemyAttributeSet)
+    {
+        EnemyAbilitySystemComponent->AddAttributeSetSubobject(EnemyAttributeSet);
+        UE_LOG(LogBP_Enemy, Warning, TEXT("Attribute Set Registered: %s"), *EnemyAttributeSet->GetName());
     }
 
-    // Initialize the Attribute Set
-    if (!AttributeSetBase) {
-        AttributeSetBase = CreateDefaultSubobject<UCharacterAttributeSetBase>(TEXT("AttributeSetBase"));
-    }
-
-    // Initialize UI Component
+    // Create Health Bar UI (no changes required here)
     UIFloatingStatusBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("UIFloatingStatusBarComponent"));
     UIFloatingStatusBarComponent->SetupAttachment(RootComponent);
-    UIFloatingStatusBarComponent->SetRelativeLocation(FVector(0, 0, 120)); // Position above the enemy
+    UIFloatingStatusBarComponent->SetRelativeLocation(FVector(0, 0, 120));
     UIFloatingStatusBarComponent->SetWidgetSpace(EWidgetSpace::World);
-    UIFloatingStatusBarComponent->SetDrawSize(FVector2D(100, 1001));
+    UIFloatingStatusBarComponent->SetDrawSize(FVector2D(100, 100));
 
-    // Load the Floating Status Bar Class
     UIFloatingStatusBarClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/ClassRogueLike/Enemies/WB_EnemyHealthbar.WB_EnemyHealthbar_C"));
     if (!UIFloatingStatusBarClass)
     {
-        UE_LOG(LogBP_Enemy, Error, TEXT("%s() Failed to find UIFloatingStatusBarClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
+        UE_LOG(LogBP_Enemy, Error, TEXT("Failed to load UIFloatingStatusBarClass."));
     }
 
-    // Initialize rotation variables
-    RotationSpeed = 5.0f;  // Adjust rotation speed as needed
+    RotationSpeed = 5.0f;
     TargetRotation = FRotator::ZeroRotator;
 }
 
@@ -53,93 +45,176 @@ void ABP_Enemy::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (AbilitySystemComponent)
+    if (!EnemyAbilitySystemComponent || !EnemyAttributeSet)
     {
-        AbilitySystemComponent->InitAbilityActorInfo(this, this);
+        UE_LOG(LogBP_Enemy, Error, TEXT("Ability System or Attribute Set is null in %s"), *GetName());
+        return;
+    }
+
+    if (GetLocalRole() == ROLE_Authority)
+    {
         InitializeAttributes();
         AddStartupEffects();
+    }
 
+    // Setup health and max health values from the applied GameplayEffect
+    HealthChangedDelegateHandle = EnemyAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+        EnemyAttributeSet->GetHealthAttribute()).AddUObject(this, &ABP_Enemy::OnHealthChanged);
+
+    MaxHealthChangedDelegateHandle = EnemyAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+        EnemyAttributeSet->GetMaxHealthAttribute()).AddUObject(this, &ABP_Enemy::OnMaxHealthChangedDelegate);
+
+    SetHealth(GetMaxHealth());
+
+    if (UIFloatingStatusBarClass)
+    {
         APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
         if (PC && PC->IsLocalPlayerController())
         {
-            if (UIFloatingStatusBarClass)
+            UIFloatingStatusBar = CreateWidget<UBP_EnemyHealthBarWidget>(PC, UIFloatingStatusBarClass);
+            if (UIFloatingStatusBar && UIFloatingStatusBarComponent)
             {
-                UIFloatingStatusBar = CreateWidget<UBP_EnemyHealthBarWidget>(PC, UIFloatingStatusBarClass);
-                if (UIFloatingStatusBar && UIFloatingStatusBarComponent)
-                {
-                    UIFloatingStatusBarComponent->SetWidget(UIFloatingStatusBar);
-                    float HealthPercentage = GetHealth() / GetMaxHealth();
-                    UE_LOG(LogTemp, Warning, TEXT("Setting Health Percentage: %f"), HealthPercentage);
-                    HealthPercentage = FMath::Clamp(HealthPercentage, 0.0f, 1.0f);  // Ensure it’s clamped
-                    UIFloatingStatusBar->SetHealthPercentage(HealthPercentage);
-                }
+                UIFloatingStatusBarComponent->SetWidget(UIFloatingStatusBar);
+                UpdateHealthBar();
             }
         }
-
-        // Bind health change
-        HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-            AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABP_Enemy::OnHealthChanged);
     }
+}
+
+UAbilitySystemComponent* ABP_Enemy::GetAbilitySystemComponent() const
+{
+    return EnemyAbilitySystemComponent;
 }
 
 void ABP_Enemy::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Update target rotation based on logic (e.g., player position or direction)
+    // Update the target rotation based on the enemy's movement direction
     UpdateTargetRotation();
 
-    // Smoothly interpolate to the target rotation
-    FRotator CurrentRotation = GetActorRotation();
-    FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, RotationSpeed);
+    // Rotate towards the direction they're moving
+    FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, RotationSpeed);
     SetActorRotation(NewRotation);
 }
 
 void ABP_Enemy::UpdateTargetRotation()
 {
-    // Example: Rotate towards the player
-    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-    if (PC)
+    // Get the enemy's current velocity
+    FVector Velocity = GetVelocity();
+
+    // Only update rotation if the enemy is moving
+    if (!Velocity.IsNearlyZero())
     {
-        APawn* PlayerPawn = PC->GetPawn();
-        if (PlayerPawn)
+        // Get the direction of the velocity, ignore Z to only rotate on the horizontal plane
+        FVector Direction = Velocity.GetSafeNormal2D();
+        TargetRotation = Direction.Rotation();
+    }
+}
+
+void ABP_Enemy::InitializeAttributes()
+{
+    UE_LOG(LogBP_Enemy, Warning, TEXT("===== InitializeAttributes START for %s ====="), *GetName());
+
+    if (!EnemyAbilitySystemComponent || !DefaultAttributesForEnemies) return;
+
+    FGameplayEffectContextHandle EffectContext = EnemyAbilitySystemComponent->MakeEffectContext();
+    EffectContext.AddSourceObject(this);
+
+    FGameplayEffectSpecHandle SpecHandle = EnemyAbilitySystemComponent->MakeOutgoingSpec(DefaultAttributesForEnemies, GetCharacterLevel(), EffectContext);
+
+    if (SpecHandle.IsValid())
+    {
+        FActiveGameplayEffectHandle GEHandle = EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+
+        // Log to verify that the GameplayEffect is applied correctly
+        UE_LOG(LogBP_Enemy, Warning, TEXT("Applied DefaultAttributesForEnemies effect"));
+    }
+
+    UE_LOG(LogBP_Enemy, Warning, TEXT("===== InitializeAttributes END for %s ====="), *GetName());
+}
+
+void ABP_Enemy::AddStartupEffects()
+{
+    if (GetLocalRole() != ROLE_Authority || !EnemyAbilitySystemComponent || EnemyAbilitySystemComponent->StartupEffectsApplied)
+    {
+        return;
+    }
+
+    FGameplayEffectContextHandle EffectContext = EnemyAbilitySystemComponent->MakeEffectContext();
+    EffectContext.AddSourceObject(this);
+
+    for (TSubclassOf<UGameplayEffect> GameplayEffect : EnemyStartupEffects)
+    {
+        FGameplayEffectSpecHandle SpecHandle = EnemyAbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext);
+        if (SpecHandle.IsValid())
         {
-            FVector DirectionToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
-            DirectionToPlayer.Z = 0;  // Ignore vertical difference
-            TargetRotation = DirectionToPlayer.Rotation();
+            EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+            UE_LOG(LogBP_Enemy, Warning, TEXT("Enemy StartupEffect: %s applied"), *GameplayEffect->GetName());
         }
     }
+
+    EnemyAbilitySystemComponent->StartupEffectsApplied = true;
 }
 
 void ABP_Enemy::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
     float NewHealth = Data.NewValue;
+    UpdateHealthBar();
 
-    UE_LOG(LogTemp, Log, TEXT("Health Changed: %f"), NewHealth);
+    if (NewHealth <= 0.0f)
+    {
+        Die();  // Call death logic if health reaches 0
+    }
+}
 
-    // Update floating status bar
+
+
+void ABP_Enemy::OnMaxHealthChangedDelegate(const FOnAttributeChangeData& Data) {}
+
+void ABP_Enemy::UpdateHealthBar()
+{
     if (UIFloatingStatusBar)
     {
-        UIFloatingStatusBar->SetHealthPercentage(NewHealth / GetMaxHealth());
-    }
+        float Health = GetHealth();
+        float MaxHealth = GetMaxHealth();
 
-    // Directly handle health change logic
-    // Update the health bar...
-    if (NewHealth <= 0.0f && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
-    {
-        Die();
+        if (MaxHealth > 0)
+        {
+            float HealthPercentage = FMath::Clamp(Health / MaxHealth, 0.0f, 1.0f);
+            UIFloatingStatusBar->SetHealthPercentage(HealthPercentage);
+        }
     }
 }
 
 void ABP_Enemy::Die()
 {
-    // Custom Die logic if needed, then call the base class Die method
-    Super::Die();
+    FinishDying();
 }
-
 
 void ABP_Enemy::FinishDying()
 {
-    // Set a lifespan for the actor before it's actually destroyed to allow any ongoing logic to complete.
+    UE_LOG(LogTemp, Warning, TEXT("%s is dying"), *GetName());
     SetLifeSpan(0.1f);
 }
+
+void ABP_Enemy::SetHealth(float HealthValue)
+{
+    if (EnemyAttributeSet)
+    {
+        HealthValue = FMath::Clamp(HealthValue, 0.0f, GetMaxHealth());
+        EnemyAttributeSet->SetHealth(HealthValue);
+        UpdateHealthBar();
+    }
+}
+
+float ABP_Enemy::GetMaxHealth() const
+{
+    return EnemyAttributeSet ? EnemyAttributeSet->GetMaxHealth() : 0.0f;
+}
+
+float ABP_Enemy::GetHealth() const
+{
+    return EnemyAttributeSet ? EnemyAttributeSet->GetHealth() : 0.0f;
+}
+

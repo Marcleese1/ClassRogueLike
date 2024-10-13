@@ -64,6 +64,10 @@
 		{
 			"Name": "AnimationWarping",
 			"Enabled": true
+		},
+		{
+			"Name": "StudioTelemetry",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
