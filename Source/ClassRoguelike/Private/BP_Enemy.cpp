@@ -10,13 +10,13 @@
 DEFINE_LOG_CATEGORY_STATIC(LogBP_Enemy, Log, All);
 
 ABP_Enemy::ABP_Enemy(const FObjectInitializer& ObjectInitializer)
-    : Super(ObjectInitializer), InitialHealth(100.0f), InitialMaxHealth(100.0f)
+    : Super(ObjectInitializer)
 {
-    // Create Ability System Component
+    // Ability System Component setup
     EnemyAbilitySystemComponent = CreateDefaultSubobject<UEnemyAbilitySystemComponent>(TEXT("EnemyAbilitySystemComponent"));
     EnemyAbilitySystemComponent->SetIsReplicated(true);
 
-    // Create Attribute Set (updated to use UEnemyAttributeSet)
+    // Attribute Set setup
     EnemyAttributeSet = CreateDefaultSubobject<UEnemyAttributeSet>(TEXT("EnemyAttributeSet"));
     if (EnemyAbilitySystemComponent && EnemyAttributeSet)
     {
@@ -24,7 +24,7 @@ ABP_Enemy::ABP_Enemy(const FObjectInitializer& ObjectInitializer)
         UE_LOG(LogBP_Enemy, Warning, TEXT("Attribute Set Registered: %s"), *EnemyAttributeSet->GetName());
     }
 
-    // Create Health Bar UI (no changes required here)
+    // Health Bar UI setup
     UIFloatingStatusBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("UIFloatingStatusBarComponent"));
     UIFloatingStatusBarComponent->SetupAttachment(RootComponent);
     UIFloatingStatusBarComponent->SetRelativeLocation(FVector(0, 0, 120));
@@ -86,27 +86,25 @@ UAbilitySystemComponent* ABP_Enemy::GetAbilitySystemComponent() const
     return EnemyAbilitySystemComponent;
 }
 
+UEnemyAttributeSet* ABP_Enemy::GetAttributeSetBase() const
+{
+    return EnemyAttributeSet;
+}
+
 void ABP_Enemy::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    // Update the target rotation based on the enemy's movement direction
     UpdateTargetRotation();
 
-    // Rotate towards the direction they're moving
     FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, RotationSpeed);
     SetActorRotation(NewRotation);
 }
 
 void ABP_Enemy::UpdateTargetRotation()
 {
-    // Get the enemy's current velocity
     FVector Velocity = GetVelocity();
-
-    // Only update rotation if the enemy is moving
     if (!Velocity.IsNearlyZero())
     {
-        // Get the direction of the velocity, ignore Z to only rotate on the horizontal plane
         FVector Direction = Velocity.GetSafeNormal2D();
         TargetRotation = Direction.Rotation();
     }
@@ -114,24 +112,16 @@ void ABP_Enemy::UpdateTargetRotation()
 
 void ABP_Enemy::InitializeAttributes()
 {
-    UE_LOG(LogBP_Enemy, Warning, TEXT("===== InitializeAttributes START for %s ====="), *GetName());
-
     if (!EnemyAbilitySystemComponent || !DefaultAttributesForEnemies) return;
 
     FGameplayEffectContextHandle EffectContext = EnemyAbilitySystemComponent->MakeEffectContext();
     EffectContext.AddSourceObject(this);
 
     FGameplayEffectSpecHandle SpecHandle = EnemyAbilitySystemComponent->MakeOutgoingSpec(DefaultAttributesForEnemies, GetCharacterLevel(), EffectContext);
-
     if (SpecHandle.IsValid())
     {
         FActiveGameplayEffectHandle GEHandle = EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-
-        // Log to verify that the GameplayEffect is applied correctly
-        UE_LOG(LogBP_Enemy, Warning, TEXT("Applied DefaultAttributesForEnemies effect"));
     }
-
-    UE_LOG(LogBP_Enemy, Warning, TEXT("===== InitializeAttributes END for %s ====="), *GetName());
 }
 
 void ABP_Enemy::AddStartupEffects()
@@ -150,7 +140,6 @@ void ABP_Enemy::AddStartupEffects()
         if (SpecHandle.IsValid())
         {
             EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-            UE_LOG(LogBP_Enemy, Warning, TEXT("Enemy StartupEffect: %s applied"), *GameplayEffect->GetName());
         }
     }
 
@@ -159,16 +148,12 @@ void ABP_Enemy::AddStartupEffects()
 
 void ABP_Enemy::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
-    float NewHealth = Data.NewValue;
     UpdateHealthBar();
-
-    if (NewHealth <= 0.0f)
+    if (Data.NewValue <= 0.0f)
     {
-        Die();  // Call death logic if health reaches 0
+        Die();
     }
 }
-
-
 
 void ABP_Enemy::OnMaxHealthChangedDelegate(const FOnAttributeChangeData& Data) {}
 
@@ -194,7 +179,6 @@ void ABP_Enemy::Die()
 
 void ABP_Enemy::FinishDying()
 {
-    UE_LOG(LogTemp, Warning, TEXT("%s is dying"), *GetName());
     SetLifeSpan(0.1f);
 }
 
@@ -217,4 +201,3 @@ float ABP_Enemy::GetHealth() const
 {
     return EnemyAttributeSet ? EnemyAttributeSet->GetHealth() : 0.0f;
 }
-

@@ -5,8 +5,8 @@
 #include "Enemy/UI/BP_EnemyHealthBarWidget.h"
 #include "Components/WidgetComponent.h"
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"
-#include "Enemy/AttributeSet/EnemyAttributeSet.h" // Include new EnemyAttributeSet
-#include "Enemy/EnemyAbilitySystemComponent.h" // Include custom Enemy Ability System Component
+#include "Enemy/AttributeSet/EnemyAttributeSet.h"
+#include "Enemy/EnemyAbilitySystemComponent.h"
 #include "BP_Enemy.generated.h"
 
 UCLASS()
@@ -19,30 +19,26 @@ public:
 
     // Getters
     UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-    UEnemyAttributeSet* GetAttributeSetBase() const; // Update to UEnemyAttributeSet
+    UEnemyAttributeSet* GetAttributeSetBase() const; // Updated to UEnemyAttributeSet
     virtual void Die();
 
     void UpdateTargetRotation();
-
     void FinishDying();
-
     void SetHealth(float HealthValue) override;
 
     float GetMaxHealth() const;
-
     float GetHealth() const;
 
 protected:
     virtual void BeginPlay() override;
-
-    void Tick(float DeltaTime);
+    void Tick(float DeltaTime) override;  // Added override for tick function.
 
     // Ability System Component and Attribute Set
     UPROPERTY(BlueprintReadOnly)
     UEnemyAbilitySystemComponent* EnemyAbilitySystemComponent;
 
     UPROPERTY(BlueprintReadOnly)
-    UEnemyAttributeSet* EnemyAttributeSet; // Update to UEnemyAttributeSet
+    UEnemyAttributeSet* EnemyAttributeSet;
 
     // Attribute Gameplay Effect
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
@@ -63,9 +59,6 @@ protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "UI")
     UBP_EnemyHealthBarWidget* UIFloatingStatusBar;
-
-    // Other variables
-    TArray<TSubclassOf<UGameplayEffect>> EnemyStartupEffects;
 
     // Rotation variables
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")

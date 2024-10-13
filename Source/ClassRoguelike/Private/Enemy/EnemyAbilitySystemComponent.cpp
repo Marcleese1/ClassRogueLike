@@ -5,11 +5,11 @@
 
 UEnemyAbilitySystemComponent::UEnemyAbilitySystemComponent()
 {
-        if (GetOwner() && GetOwner()->HasAuthority())
-        {
+    if (GetOwner() && GetOwner()->HasAuthority())
+    {
         SetIsReplicated(true);
         SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-        }
+    }
 }
 
 FActiveGameplayEffectHandle UEnemyAbilitySystemComponent::ApplyDefaultAttributesToEnemy(TSubclassOf<UGameplayEffect> DefaultAttributes, int32 Level)
@@ -29,7 +29,6 @@ FActiveGameplayEffectHandle UEnemyAbilitySystemComponent::ApplyDefaultAttributes
         UE_LOG(LogTemp, Error, TEXT("Failed to create Spec for DefaultAttributes in UEnemyAbilitySystemComponent::ApplyDefaultAttributesToEnemy"));
         return FActiveGameplayEffectHandle();
     }
-
 
     return ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
