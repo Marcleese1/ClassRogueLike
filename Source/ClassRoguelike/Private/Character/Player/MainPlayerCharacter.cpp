@@ -1,23 +1,27 @@
 #include "Character/Player/MainPlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Character/Abilities/CharacterGameplayAbility.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "AI/PlayerAIController.h"
 #include "Player/MainPlayerState.h"
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"
+#include "Character/Abilities/CharacterGameplayAbility.h"  // Ensure this header is included
 #include "Kismet/KismetMathLibrary.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
-#include "InputAction.h" 
-#include "GameplayEffect.h"            
-#include <BP_Enemy.h>
+#include "InputAction.h"
+#include "GameplayEffect.h"
+#include "BP_Enemy.h"
 
-AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
 {
-    // Initialize other components here
 
+   
+
+
+    // Initialize input actions and contexts
     static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/Game/Input/IA_UseAbility.IA_UseAbility"));
     UseAbilityAction = UseAbilityActionFinder.Object;
 
@@ -28,11 +32,12 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
     FighterAbilitiesMappingContext = FighterAbilitiesMappingContextFinder.Object;
 
     static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/Input/IA_StartTargeting.IA_StartTargeting"));
-    StartTargetingAction = StartTargetingActionFinder.Object;
+    StartTargetingAction = StartTargetingActionFinder.Object; 
 
     static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/Input/IA_Confirm.IA_Confirm"));
     ConfirmTargetAction = ConfirmTargetActionFinder.Object;
 
+    // Initialize camera components
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(FName("CameraBoom"));
     CameraBoom->SetupAttachment(RootComponent);
     CameraBoom->bUsePawnControlRotation = true;
@@ -42,15 +47,17 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
     FollowCamera->SetupAttachment(CameraBoom);
     FollowCamera->FieldOfView = 90.0f;
 
+    // Configure capsule and mesh collision
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
     GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetMesh()->SetCollisionProfileName(FName("NoCollision"));
 
+    // Set AI controller and gameplay tags
     AIControllerClass = APlayerAIController::StaticClass();
     DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
 
-    // Load input mapping context and actions
+    // Load movement mapping context and actions
     static ConstructorHelpers::FObjectFinder<UInputMappingContext> MovementContextFinder(TEXT("/Game/ClassRoguelike/Characters/InputActions/IMC_Movement.IMC_Movement"));
     MovementMappingContext = MovementContextFinder.Object;
 
@@ -72,27 +79,9 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
     static ConstructorHelpers::FObjectFinder<UInputAction> MoveRightActionFinder(TEXT("/Game/ClassRoguelike/Characters/InputActions/IA_MoveRight.IA_MoveRight"));
     MoveRightAction = MoveRightActionFinder.Object;
 
-    if (MovementMappingContext)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("MovementMappingContext loaded successfully"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to load MovementMappingContext"));
-    }
-
-    if (LookUpAction)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("LookUpAction loaded successfully"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to load LookUpAction"));
-    }
-
     // Initialize attack collision component
     AttackCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("AttackCollision"));
-    AttackCollision->SetupAttachment(GetMesh(), FName("WeaponSocket")); // Attach to the weapon or character mesh
+    AttackCollision->SetupAttachment(GetMesh(), FName("WeaponSocket"));
     AttackCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
     AttackCollision->SetGenerateOverlapEvents(false);  // Disable by default
 }
@@ -100,6 +89,7 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
 void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
+
     if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
     {
         EnhancedInputComponent->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::LookUp);
@@ -123,24 +113,6 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
     }
 
     BindASCInput();
-}
-
-void AMainPlayerCharacter::HandleInputActionTriggered(const FInputActionInstance& ActionInstance)
-{
-    UCharacterAbilitySystemComponent* ASC = Cast<UCharacterAbilitySystemComponent>(GetAbilitySystemComponent());
-    if (ASC)
-    {
-        ASC->ProcessInputAction(ActionInstance.GetSourceAction(), true);
-    }
-}
-
-void AMainPlayerCharacter::HandleInputActionCompleted(const FInputActionInstance& ActionInstance)
-{
-    UCharacterAbilitySystemComponent* ASC = Cast<UCharacterAbilitySystemComponent>(GetAbilitySystemComponent());
-    if (ASC)
-    {
-        ASC->ProcessInputAction(ActionInstance.GetSourceAction(), false);
-    }
 }
 
 void AMainPlayerCharacter::PossessedBy(AController* NewController)
@@ -190,7 +162,7 @@ FVector AMainPlayerCharacter::GetStartingCameraBoomLocation()
 void AMainPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    // Ensure AbilitySystemComponent is valid
+
     if (!AbilitySystemComponent)
     {
         UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent is not initialized"));
@@ -198,7 +170,6 @@ void AMainPlayerCharacter::BeginPlay()
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("AbilitySystemComponent initialized successfully"));
-        // Bind input after ensuring the component is valid
         BindASCInput();
     }
 
@@ -258,8 +229,8 @@ void AMainPlayerCharacter::MoveRight(const FInputActionValue& Value)
 
 void AMainPlayerCharacter::OnRep_PlayerState()
 {
-    Super::OnRep_PlayerState();
-    if (ASCInputBound)
+    Super::OnRep_PlayerState(); // Call the base class implementation
+    if (!ASCInputBound)
     {
         BindASCInput();
     }
@@ -281,10 +252,8 @@ void AMainPlayerCharacter::BindASCInput()
 {
     if (!ASCInputBound && AbilitySystemComponent && IsValid(InputComponent))
     {
-        // Use FTopLevelAssetPath for the ability enum path
         FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(FName("/Script/ClassRoguelike"), FName("BaseAbilityID"));
 
-        // Simplified binding method
         AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent,
             FGameplayAbilityInputBinds(
                 FString("ConfirmTarget"),
@@ -299,11 +268,9 @@ void AMainPlayerCharacter::BindASCInput()
 
         for (auto& Entry : InputToAbilityMap)
         {
-            // Get the InputAction and GameplayAbility from the TMap
             UInputAction* InputAction = const_cast<UInputAction*>(Entry.Key);
             FGameplayAbilitySpecHandle AbilityHandle = Entry.Value;
 
-            // Debug logs to ensure validity
             if (!InputAction)
             {
                 UE_LOG(LogTemp, Error, TEXT("InputAction is nullptr"));
@@ -316,7 +283,6 @@ void AMainPlayerCharacter::BindASCInput()
                 continue;
             }
 
-            // Bind the ability to the input action
             if (AbilitySystemComponent)
             {
                 AbilitySystemComponent->SetInputBinding(InputAction, AbilityHandle);
@@ -329,21 +295,6 @@ void AMainPlayerCharacter::BindASCInput()
 
         ASCInputBound = true;
         UE_LOG(LogTemp, Warning, TEXT("ASCInputBound successfully set to true"));
-    }
-    else
-    {
-        if (ASCInputBound)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("ASCInputBound is already true"));
-        }
-        if (!AbilitySystemComponent)
-        {
-            UE_LOG(LogTemp, Error, TEXT("AbilitySystemComponent is invalid"));
-        }
-        if (!IsValid(InputComponent))
-        {
-            UE_LOG(LogTemp, Error, TEXT("InputComponent is invalid"));
-        }
     }
 }
 
@@ -401,35 +352,50 @@ void AMainPlayerCharacter::ConfirmTarget(const FInputActionValue& Value)
 void AMainPlayerCharacter::OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    //if (OtherActor && OtherActor != this && OtherComp)
-    //{
-    //    ABP_Enemy* Enemy = Cast<ABP_Enemy>(OtherActor);
-    //    if (Enemy)
-    //    {
-    //        // Apply existing gameplay effect for slash attack
-    //        FGameplayEffectSpecHandle DamageEffectSpec = AbilitySystemComponent->MakeOutgoingSpec(
-    //            USlashDamageGameplayEffect::StaticClass(), GetCharacterLevel(), AbilitySystemComponent->MakeEffectContext());
+    /*if (OtherActor && OtherActor != this && OtherComp)
+    {
+        ABP_Enemy* Enemy = Cast<ABP_Enemy>(OtherActor);
+        if (Enemy)
+        {
+            FGameplayEffectSpecHandle DamageEffectSpec = AbilitySystemComponent->MakeOutgoingSpec(
+                USlashDamageGameplayEffect::StaticClass(), GetCharacterLevel(), AbilitySystemComponent->MakeEffectContext());
 
-    //        if (DamageEffectSpec.IsValid())
-    //        {
-    //            AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data.Get(), Enemy->GetAbilitySystemComponent());
-    //            UE_LOG(LogTemp, Warning, TEXT("Enemy hit with existing slash damage effect"));
-    //        }
-    //    }
-    //}
+            if (DamageEffectSpec.IsValid())
+            {
+                AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*DamageEffectSpec.Data.Get(), Enemy->GetAbilitySystemComponent());
+                UE_LOG(LogTemp, Warning, TEXT("Enemy hit with existing slash damage effect"));
+            }
+        }
+    }*/
 }
+
 
 void AMainPlayerCharacter::ActivateAttack()
 {
-    // Enable the attack collision
     AttackCollision->SetGenerateOverlapEvents(true);
 
-    // You can use a timer or animation notify to disable the collision after a short duration
     GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AMainPlayerCharacter::DeactivateAttack, 0.5f, false);
 }
 
 void AMainPlayerCharacter::DeactivateAttack()
 {
-    // Disable the attack collision
     AttackCollision->SetGenerateOverlapEvents(false);
+}
+
+void AMainPlayerCharacter::HandleInputActionTriggered(const FInputActionInstance& ActionInstance)
+{
+    UCharacterAbilitySystemComponent* ASC = Cast<UCharacterAbilitySystemComponent>(GetAbilitySystemComponent());
+    if (ASC)
+    {
+        ASC->ProcessInputAction(ActionInstance.GetSourceAction(), true);
+    }
+}
+
+void AMainPlayerCharacter::HandleInputActionCompleted(const FInputActionInstance& ActionInstance)
+{
+    UCharacterAbilitySystemComponent* ASC = Cast<UCharacterAbilitySystemComponent>(GetAbilitySystemComponent());
+    if (ASC)
+    {
+        ASC->ProcessInputAction(ActionInstance.GetSourceAction(), false);
+    }
 }

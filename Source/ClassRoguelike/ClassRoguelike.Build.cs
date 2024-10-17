@@ -16,7 +16,8 @@ public class ClassRoguelike : ModuleRules
             "UMG",
             "GameplayAbilities",
             "GameplayTags",
-            "GameplayTasks"
+            "GameplayTasks",
+            "MotionWarping"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
