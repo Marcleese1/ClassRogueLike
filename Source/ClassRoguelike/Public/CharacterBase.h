@@ -11,6 +11,7 @@
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
 #include "Character/Abilities/CharacterAbilitySystemComponent.h"// Include for FGameplayAbilitySpecHandle
 #include "InputAction.h" 
+#include "MotionWarpingComponent.h"
 #include <ClassRoguelike/ClassRoguelike.h>
 #include "CharacterBase.generated.h"
 
@@ -30,6 +31,9 @@ public:
     // This needs to be implemented when using IAbilitySystemInterface
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Motion Warping", meta = (AllowPrivateAccess = "true"))
+    class UMotionWarpingComponent* MotionWarpingComponent;
+
     UPROPERTY(BlueprintAssignable, Category = "ClassRoguelike|Character")
     FCharacterDiedDelegate OnCharacterDied;
 
@@ -41,6 +45,7 @@ public:
 
     virtual void RemoveCharacterAbilities();
 
+    UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character")
     virtual void Die();
 
     UFUNCTION(BlueprintCallable, Category = "ClassRoguelike|Character")
@@ -77,8 +82,18 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
     UCharacterAttributeSetBase* AttributeSetBase;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
+    class UEnemyAttributeSet* EnemyAttributeSet;
+
     FGameplayTag DeadTag;
     FGameplayTag EffectRemoveOnDeathTag;
+
+    // Arrays to store startup effects for players and enemies
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Effects")
+    TArray<TSubclassOf<class UGameplayEffect>> PlayerStartupEffects;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Effects")
+    TArray<TSubclassOf<class UGameplayEffect>> EnemyStartupEffects;
 
     UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "ClassRoguelike|Character")
     FText CharacterName;
@@ -105,16 +120,11 @@ protected:
     virtual void AddStartupEffects();
 
     virtual void SetHealth(float Health);
+    virtual void SetMaxHealth(float MaxHealth);
 
     virtual void SetMana(float Mana);
+    virtual void SetMaxMana(float MaxMana);
 
     virtual void SetStamina(float Stamina);
-
-    // Add OnHealthChanged function
-    //UFUNCTION()
-    //virtual void OnHealthChanged(const FOnAttributeChangeData& Data);  // Fixed signature
-
-    //// Add UpdateHealthBar function to be overridden by subclasses
-    //UFUNCTION()
-    //virtual void UpdateHealthBar();
+    virtual void SetMaxStamina(float MaxStamina);
 };

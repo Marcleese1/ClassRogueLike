@@ -1,6 +1,11 @@
 #include "Character/Abilities/AttributeSets/CharacterAttributeSetBase.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/Actor.h"
+#include "GameplayEffect.h"
+#include "GameplayEffectExtension.h"
+#include "CharacterBase.h" // Ensure this is included to reference player-specific logic
+#include <Character/Player/MainPlayerCharacter.h>
+#include <BP_Enemy.h>
 
 UCharacterAttributeSetBase::UCharacterAttributeSetBase()
 {
@@ -39,7 +44,60 @@ UCharacterAttributeSetBase::UCharacterAttributeSetBase()
 
     MovementSpeed.SetBaseValue(600.0f);
     MovementSpeed.SetCurrentValue(600.0f);
+
+    UE_LOG(LogTemp, Warning, TEXT("UCharacterAttributeSetBase created and default values set."));
 }
+
+
+void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+    Super::PostGameplayEffectExecute(Data);
+
+    // Check if we're dealing with damage
+    if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+    {
+        const float DamageDone = GetDamage();
+
+        // Log the current health and max health before applying the damage
+        UE_LOG(LogTemp, Warning, TEXT("Damage Done: %f"), DamageDone);
+        UE_LOG(LogTemp, Warning, TEXT("Current Health Before Modifier: %f"), GetHealth());
+        UE_LOG(LogTemp, Warning, TEXT("Current Max Health Before Modifier: %f"), GetMaxHealth());
+
+        // Check if health is being reset somewhere before applying the damage
+        if (GetHealth() == 100.0f)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Warning: Health has been reset to 100 before applying damage!"));
+        }
+
+        // Apply the damage by subtracting it from the health
+        float NewHealth = FMath::Clamp(GetHealth() - DamageDone, 0.0f, GetMaxHealth());
+
+        // Apply the new health value and log it
+        SetHealth(NewHealth);
+        UE_LOG(LogTemp, Warning, TEXT("New Health After Damage: %f"), NewHealth);
+
+        // Check if health is still being reset after applying the damage
+        if (NewHealth == 100.0f)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Error: Health has been reset to 100 after applying damage!"));
+        }
+
+        // Clear the damage value only after health has been updated
+        SetDamage(0.0f);
+
+        // Check if the entity is dead and handle death logic
+        if (NewHealth <= 0.0f)
+        {
+            AActor* OwningActor = GetOwningActor();
+            if (AMainPlayerCharacter* Player = Cast<AMainPlayerCharacter>(OwningActor))
+            {
+                Player->Die();
+            }
+        }
+    }
+}
+
+// The rest of the replication functions and attribute changes notifications remain the same
 
 void UCharacterAttributeSetBase::OnRep_Level(const FGameplayAttributeData& OldLevel)
 {
@@ -55,6 +113,7 @@ void UCharacterAttributeSetBase::OnRep_MaxHealth(const FGameplayAttributeData& O
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSetBase, MaxHealth, OldMaxHealth);
 }
+
 
 void UCharacterAttributeSetBase::OnRep_Mana(const FGameplayAttributeData& OldMana)
 {
