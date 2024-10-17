@@ -15,44 +15,51 @@ class CLASSROGUELIKE_API ABP_Enemy : public ACharacterBase
     GENERATED_BODY()
 
 public:
+    // Constructor
     ABP_Enemy(const FObjectInitializer& ObjectInitializer);
 
     // Getters
-    UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-    UEnemyAttributeSet* GetAttributeSetBase() const; // Updated to UEnemyAttributeSet
-    virtual void Die();
+    UAbilitySystemComponent* GetAbilitySystemComponent() const override;  // Enemy ASC
+    UEnemyAttributeSet* GetEnemyAttributeSet() const;  // Enemy Attribute Set
 
-    void UpdateTargetRotation();
-    void FinishDying();
+    // Override for setting health
     void SetHealth(float HealthValue) override;
 
+    // Get health and max health
     float GetMaxHealth() const;
     float GetHealth() const;
 
+    // Rotation handling
+    void UpdateTargetRotation();  // Make enemies rotate correctly
+
+    // Death handling
+    virtual void Die();
+    void FinishDying();
+
+    // Add startup effects (if needed)
+    void AddStartupEffects();
+
+    // Stun mechanic handler (for future use)
+    void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 protected:
     virtual void BeginPlay() override;
-    void Tick(float DeltaTime) override;  // Added override for tick function.
+    void Tick(float DeltaTime) override;  // For rotation updates
 
-    // Ability System Component and Attribute Set
+    // Ability System Component for Enemies
     UPROPERTY(BlueprintReadOnly)
     UEnemyAbilitySystemComponent* EnemyAbilitySystemComponent;
 
-    UPROPERTY(BlueprintReadOnly)
+    // Enemy Attribute Set
     UEnemyAttributeSet* EnemyAttributeSet;
 
-    // Attribute Gameplay Effect
+    // Gameplay Effect for setting default attributes
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
     TSubclassOf<UGameplayEffect> DefaultAttributesForEnemies;
 
     // UI Health Bar
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
     UWidgetComponent* UIFloatingStatusBarComponent;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
-    float InitialHealth;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
-    float InitialMaxHealth;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
     TSubclassOf<UBP_EnemyHealthBarWidget> UIFloatingStatusBarClass;
@@ -66,14 +73,19 @@ protected:
 
     FRotator TargetRotation;
 
+    // Delegate Handles
     FDelegateHandle HealthChangedDelegateHandle;
     FDelegateHandle MaxHealthChangedDelegateHandle;
+
     FGameplayTag DeadTag;
 
     // Functions
-    void InitializeAttributes();
-    void AddStartupEffects();
-    void UpdateHealthBar();
-    void OnHealthChanged(const FOnAttributeChangeData& Data);
-    void OnMaxHealthChangedDelegate(const FOnAttributeChangeData& Data);
+    void InitializeAttributes();  // Initialize attributes
+    void UpdateHealthBar();  // Update health bar UI
+    void HealthChanged(const FOnAttributeChangeData& Data);  // Health change callback
+    void OnMaxHealthChangedDelegate(const FOnAttributeChangeData& Data);  // Max health change callback
+
+    // Flag to track enemy death
+    UPROPERTY()
+    bool bIsDead = false;
 };

@@ -3,9 +3,9 @@
 #include "GameFramework/Actor.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
-#include "BP_Enemy.h"
 #include "CharacterBase.h" // Ensure this is included to reference player-specific logic
 #include <Character/Player/MainPlayerCharacter.h>
+#include <BP_Enemy.h>
 
 UCharacterAttributeSetBase::UCharacterAttributeSetBase()
 {
@@ -48,6 +48,7 @@ UCharacterAttributeSetBase::UCharacterAttributeSetBase()
     UE_LOG(LogTemp, Warning, TEXT("UCharacterAttributeSetBase created and default values set."));
 }
 
+
 void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
     Super::PostGameplayEffectExecute(Data);
@@ -88,23 +89,13 @@ void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffect
         if (NewHealth <= 0.0f)
         {
             AActor* OwningActor = GetOwningActor();
-            if (ABP_Enemy* Enemy = Cast<ABP_Enemy>(OwningActor))
-            {
-                Enemy->Die();
-            }
-            else if (AMainPlayerCharacter* Player = Cast<AMainPlayerCharacter>(OwningActor))
+            if (AMainPlayerCharacter* Player = Cast<AMainPlayerCharacter>(OwningActor))
             {
                 Player->Die();
             }
         }
     }
 }
-
-
-
-
-
-
 
 // The rest of the replication functions and attribute changes notifications remain the same
 

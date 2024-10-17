@@ -5,25 +5,38 @@
 
 UEnemyAttributeSet::UEnemyAttributeSet()
 {
-    // No need for default values for Health and MaxHealth here
+    Health.SetBaseValue(100.0f);  // Set default health values
+    Health.SetCurrentValue(100.0f);
+
+    MaxHealth.SetBaseValue(100.0f);
+    MaxHealth.SetCurrentValue(100.0f);
 }
 
 void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
     Super::PostGameplayEffectExecute(Data);
 
-    // If the health is being modified (damage or healing)
-    if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+    // If we are dealing with damage or health changes
+    if (Data.EvaluatedData.Attribute == GetDamageAttribute())
     {
-        const float NewHealth = GetHealth();
+        const float DamageDone = GetDamage();
 
-        // Handle death if health falls to 0 or below
+        // Clamp new health
+        const float NewHealth = FMath::Clamp(GetHealth() - DamageDone, 0.0f, GetMaxHealth());
+        SetHealth(NewHealth);
+
+        UE_LOG(LogTemp, Warning, TEXT("New Health After Damage: %f"), NewHealth);
+
+        // Reset damage value
+        SetDamage(0.0f);
+
+        // Check if the entity is dead and handle death logic for enemies
         if (NewHealth <= 0.0f)
         {
-            AActor* Owner = GetOwningActor();
-            if (ABP_Enemy* Enemy = Cast<ABP_Enemy>(Owner))
+            AActor* OwningActor = GetOwningActor();
+            if (ABP_Enemy* Enemy = Cast<ABP_Enemy>(OwningActor))
             {
-                Enemy->Die();
+                Enemy->Die();  // Handle the enemy death within the enemy class
             }
         }
     }

@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "AbilitySystemComponent.h" // Required for FGameplayAttributeData
+#include "AbilitySystemComponent.h"  // Required for FGameplayAttributeData
 #include "EnemyAttributeSet.generated.h"
 
 // Macro for simplifying the attribute accessor declarations
@@ -20,8 +20,6 @@ class CLASSROGUELIKE_API UEnemyAttributeSet : public UAttributeSet
 public:
     UEnemyAttributeSet();
 
-    void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data);
-
     // Health attribute with replication support
     UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
     FGameplayAttributeData Health;
@@ -32,10 +30,15 @@ public:
     FGameplayAttributeData MaxHealth;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, MaxHealth)
 
-        // Armor attribute with replication support
+        // Armor attribute with replication support (Optional)
         UPROPERTY(BlueprintReadOnly, Category = "Armor", ReplicatedUsing = OnRep_Armor)
     FGameplayAttributeData Armor;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, Armor)
+
+        // Damage attribute
+        UPROPERTY(BlueprintReadOnly, Category = "Damage")
+    FGameplayAttributeData Damage;
+    ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, Damage)
 
         // Replication notification functions
         UFUNCTION()
@@ -48,6 +51,8 @@ public:
     void OnRep_Armor(const FGameplayAttributeData& OldArmor);
 
 protected:
+    virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
     // Override to support replication of attributes
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

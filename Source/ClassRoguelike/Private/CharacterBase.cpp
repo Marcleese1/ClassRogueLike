@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "EnhancedPlayerInput.h"
+#include <Enemy/AttributeSet/EnemyAttributeSet.h>
 
 // Sets default values
 // Sets default values
@@ -15,6 +16,7 @@ ACharacterBase::ACharacterBase(const FObjectInitializer& ObjectInitializer)
     // Initialize the ability system component
     AbilitySystemComponent = CreateDefaultSubobject<UCharacterAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
     AttributeSetBase = CreateDefaultSubobject<UCharacterAttributeSetBase>(TEXT("AttributeSetBase"));
+    //EnemyAttributeSet = CreateDefaultSubobject<UEnemyAttributeSet>(TEXT("EnemyAttributeSet"));
 
     // Initialize the Motion Warping Component
     MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
@@ -93,6 +95,9 @@ float ACharacterBase::GetHealth() const
     if (AttributeSetBase) {
         return AttributeSetBase->GetHealth();
     }
+    else if (EnemyAttributeSet) {
+        return EnemyAttributeSet->GetHealth();
+    }
 
     return 0.0f;
 }
@@ -108,8 +113,19 @@ float ACharacterBase::GetMana() const
 
 float ACharacterBase::GetMaxHealth() const
 {
-    return AttributeSetBase ? AttributeSetBase->GetMaxHealth() : 0.0f;
+    if (AttributeSetBase)
+    {
+        return AttributeSetBase->GetMaxHealth();
+    }
+    else if (EnemyAttributeSet)
+    {
+        return EnemyAttributeSet->GetMaxHealth();
+    }
+
+    // Add a default return value if both are null
+    return 0.0f;
 }
+
 
 float ACharacterBase::GetMaxMana() const
 {
@@ -274,6 +290,10 @@ void ACharacterBase::SetHealth(float Health)
         UE_LOG(LogTemp, Warning, TEXT("SetHealth called: Health set to %f"), Health);
         AttributeSetBase->SetHealth(Health);
     }
+    if (EnemyAttributeSet) {
+		UE_LOG(LogTemp, Warning, TEXT("SetHealth called: Health set to %f"), Health);
+		EnemyAttributeSet->SetHealth(Health);
+	}
 }
 
 void ACharacterBase::SetMaxHealth(float MaxHealth)
@@ -281,6 +301,10 @@ void ACharacterBase::SetMaxHealth(float MaxHealth)
 	if (AttributeSetBase) {
         UE_LOG(LogTemp, Warning, TEXT("SetMaxHealth called: MaxHealth set to %f"), MaxHealth);
 		AttributeSetBase->SetMaxHealth(MaxHealth);
+	}
+    if(EnemyAttributeSet) {
+		UE_LOG(LogTemp, Warning, TEXT("SetMaxHealth called: MaxHealth set to %f"), MaxHealth);
+		EnemyAttributeSet->SetMaxHealth(MaxHealth);
 	}
 }
 

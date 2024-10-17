@@ -82,6 +82,9 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
     UCharacterAttributeSetBase* AttributeSetBase;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
+    class UEnemyAttributeSet* EnemyAttributeSet;
+
     FGameplayTag DeadTag;
     FGameplayTag EffectRemoveOnDeathTag;
 
