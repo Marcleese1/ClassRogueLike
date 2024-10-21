@@ -25,6 +25,8 @@ public:
     // Override for setting health
     void SetHealth(float HealthValue) override;
 
+    void UpdateMovementSpeed();
+
     // Get health and max health
     float GetMaxHealth() const;
     float GetHealth() const;
@@ -66,6 +68,20 @@ protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "UI")
     UBP_EnemyHealthBarWidget* UIFloatingStatusBar;
+
+    // Add these variables to differentiate between fast and slow enemies
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Type")
+    bool bIsFastEnemy = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Type")
+    bool bIsSlowEnemy = false;
+
+    // GameplayEffects for different movement speeds
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+    TSubclassOf<UGameplayEffect> FastMovementSpeedEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+    TSubclassOf<UGameplayEffect> SlowMovementSpeedEffect;
 
     // Rotation variables
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")

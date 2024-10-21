@@ -10,6 +10,15 @@ UEnemyAttributeSet::UEnemyAttributeSet()
 
     MaxHealth.SetBaseValue(100.0f);
     MaxHealth.SetCurrentValue(100.0f);
+
+    Armor.SetBaseValue(0.0f);  // Set default armor values
+    Armor.SetCurrentValue(0.0f);
+
+    Damage.SetBaseValue(0.0f);  // Set default damage values
+    Damage.SetCurrentValue(0.0f);
+
+    MovementSpeed.SetBaseValue(600.0f);  // Set default movement speed values
+    MovementSpeed.SetCurrentValue(600.0f);
 }
 
 void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -57,6 +66,15 @@ void UEnemyAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldArmor)
     GAMEPLAYATTRIBUTE_REPNOTIFY(UEnemyAttributeSet, Armor, OldArmor);
 }
 
+void UEnemyAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UEnemyAttributeSet, MovementSpeed, OldMovementSpeed);
+}
+void UEnemyAttributeSet::OnRep_Damage(const FGameplayAttributeData& OldDamage)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UEnemyAttributeSet, Damage, OldDamage);
+}
+
 void UEnemyAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -64,4 +82,6 @@ void UEnemyAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
     DOREPLIFETIME_CONDITION_NOTIFY(UEnemyAttributeSet, Health, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UEnemyAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UEnemyAttributeSet, Armor, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UEnemyAttributeSet, Damage, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UEnemyAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always);
 }

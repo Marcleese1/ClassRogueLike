@@ -40,6 +40,10 @@ public:
     FGameplayAttributeData Damage;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, Damage)
 
+        UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_MovementSpeed)
+    FGameplayAttributeData MovementSpeed;
+    ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, MovementSpeed)
+
         // Replication notification functions
         UFUNCTION()
     void OnRep_Health(const FGameplayAttributeData& OldHealth);
@@ -50,8 +54,15 @@ public:
     UFUNCTION()
     void OnRep_Armor(const FGameplayAttributeData& OldArmor);
 
+
 protected:
     virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+    UFUNCTION()
+    void OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed);
+
+    UFUNCTION()
+    void OnRep_Damage(const FGameplayAttributeData& OldDamage);
 
     // Override to support replication of attributes
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

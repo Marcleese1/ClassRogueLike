@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Enemy/EnemyAbilitySystemComponent.h"
+#include "GameFramework/CharacterMovementComponent.h" 
 
 DEFINE_LOG_CATEGORY_STATIC(LogBP_Enemy, Log, All);
 
@@ -50,7 +51,8 @@ void ABP_Enemy::BeginPlay()
     if (GetLocalRole() == ROLE_Authority)
     {
         InitializeAttributes();  // Initialize attributes
-        AddStartupEffects();  // Apply startup effects (if any)
+        AddStartupEffects();
+        UpdateMovementSpeed();// Apply startup effects (if any)
     }
 
     // Setup health and max health values from the applied GameplayEffect
@@ -102,7 +104,8 @@ void ABP_Enemy::InitializeAttributes()
         if (SpecHandle.IsValid())
         {
             FActiveGameplayEffectHandle ActiveGEHandle = EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-            SetHealth(GetMaxHealth());  // Set initial health to max
+            SetHealth(GetMaxHealth());
+            UpdateMovementSpeed();// Set initial health to max
             UE_LOG(LogTemp, Warning, TEXT("Attributes Initialized: Health set to %f"), GetHealth());
         }
         else
@@ -126,7 +129,7 @@ void ABP_Enemy::HealthChanged(const FOnAttributeChangeData& Data)
 
     UpdateHealthBar();  // Update UI
 
-    if (NewHealth <= 0.0f)
+    if (NewHealth <= 0.0f) // Check if the enemy is dead
     {
         Die();  // Trigger death sequence
     }
@@ -261,8 +264,23 @@ void ABP_Enemy::Tick(float DeltaTime)
 // Apply startup effects
 void ABP_Enemy::AddStartupEffects()
 {
-    // Apply startup effects if needed
+    if (GetLocalRole() == ROLE_Authority && EnemyAbilitySystemComponent)
+    {
+        if (bIsFastEnemy && FastMovementSpeedEffect)
+        {
+            // Apply the fast movement speed effect
+            FGameplayEffectSpecHandle SpeedSpecHandle = EnemyAbilitySystemComponent->MakeOutgoingSpec(FastMovementSpeedEffect, 1, EnemyAbilitySystemComponent->MakeEffectContext());
+            EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpeedSpecHandle.Data.Get());
+        }
+        else if (bIsSlowEnemy && SlowMovementSpeedEffect)
+        {
+            // Apply the slow movement speed effect
+            FGameplayEffectSpecHandle SpeedSpecHandle = EnemyAbilitySystemComponent->MakeOutgoingSpec(SlowMovementSpeedEffect, 1, EnemyAbilitySystemComponent->MakeEffectContext());
+            EnemyAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpeedSpecHandle.Data.Get());
+        }
+    }
 }
+
 
 // Handle stun tag change (for future use)
 void ABP_Enemy::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
@@ -277,5 +295,16 @@ void ABP_Enemy::SetHealth(float HealthValue)
         HealthValue = FMath::Clamp(HealthValue, 0.0f, GetMaxHealth());
         EnemyAttributeSet->SetHealth(HealthValue);
         UpdateHealthBar();
+    }
+}
+
+
+void ABP_Enemy::UpdateMovementSpeed()
+{
+    if (EnemyAttributeSet && GetCharacterMovement())
+    {
+        float NewSpeed = EnemyAttributeSet->GetMovementSpeed();
+        GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("Enemy movement speed set to: %f"), NewSpeed);
     }
 }
