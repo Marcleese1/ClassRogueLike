@@ -67,6 +67,20 @@ public:
     FGameplayAttributeData MovementSpeed;
     ATTRIBUTE_ACCESSORS(UCharacterAttributeSetBase, MovementSpeed)
 
+    UPROPERTY(BlueprintReadOnly, Category = "Cooldown", ReplicatedUsing = OnRep_Cooldown)
+    FGameplayAttributeData Cooldown;
+    ATTRIBUTE_ACCESSORS(UCharacterAttributeSetBase, Cooldown)
+
+    UPROPERTY(BlueprintReadOnly, Category = "Cooldown", ReplicatedUsing = OnRep_CooldownReduction)
+    FGameplayAttributeData CooldownReduction;
+    ATTRIBUTE_ACCESSORS(UCharacterAttributeSetBase, CooldownReduction)
+
+    UFUNCTION()
+    virtual void OnRep_Cooldown(const FGameplayAttributeData& OldCooldown);
+
+    UFUNCTION()
+    virtual void OnRep_CooldownReduction(const FGameplayAttributeData& OldCooldownReduction);
+
         UFUNCTION()
     void LogAttributeValues() const;
 

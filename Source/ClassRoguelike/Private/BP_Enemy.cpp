@@ -33,7 +33,6 @@ ABP_Enemy::ABP_Enemy(const FObjectInitializer& ObjectInitializer)
     {
         UE_LOG(LogBP_Enemy, Error, TEXT("Failed to load UIFloatingStatusBarClass."));
     }
-
     RotationSpeed = 5.0f;
     TargetRotation = FRotator::ZeroRotator;
 }
