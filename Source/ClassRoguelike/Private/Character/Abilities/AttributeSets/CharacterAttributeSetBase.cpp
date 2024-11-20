@@ -155,6 +155,17 @@ void UCharacterAttributeSetBase::OnRep_MovementSpeed(const FGameplayAttributeDat
     GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSetBase, MovementSpeed, OldMovementSpeed);
 }
 
+void UCharacterAttributeSetBase::OnRep_Cooldown(const FGameplayAttributeData& OldCooldown)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSetBase, Cooldown, OldCooldown);
+}
+
+void UCharacterAttributeSetBase::OnRep_CooldownReduction(const FGameplayAttributeData& OldCooldownReduction)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSetBase, CooldownReduction, OldCooldownReduction);
+}
+
+
 void UCharacterAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -170,6 +181,8 @@ void UCharacterAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProp
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, CriticalHitDamage, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, CriticalHitChance, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, MovementSpeed, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, Cooldown, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UCharacterAttributeSetBase, CooldownReduction, COND_None, REPNOTIFY_Always);
 }
 
 void UCharacterAttributeSetBase::LogAttributeValues() const
