@@ -24,6 +24,8 @@ public:
 
     // Override for setting health
     void SetHealth(float HealthValue) override;
+    void Attack();
+    void OnTagChanged(FGameplayTag CallbackTag, int32 NewCount);
 
     void UpdateMovementSpeed();
 

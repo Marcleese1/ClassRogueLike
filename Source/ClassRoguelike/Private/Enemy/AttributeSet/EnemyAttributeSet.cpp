@@ -34,8 +34,6 @@ void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
         const float NewHealth = FMath::Clamp(GetHealth() - DamageDone, 0.0f, GetMaxHealth());
         SetHealth(NewHealth);
 
-        UE_LOG(LogTemp, Warning, TEXT("New Health After Damage: %f"), NewHealth);
-
         // Reset damage value
         SetDamage(0.0f);
 

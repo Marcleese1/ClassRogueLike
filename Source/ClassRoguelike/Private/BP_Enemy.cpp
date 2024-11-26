@@ -54,6 +54,13 @@ void ABP_Enemy::BeginPlay()
         UpdateMovementSpeed();// Apply startup effects (if any)
     }
 
+    if (EnemyAbilitySystemComponent)
+    {
+        EnemyAbilitySystemComponent->RegisterGameplayTagEvent(
+            FGameplayTag::RequestGameplayTag(FName("GameplayCue.Debuff.Stun")),
+            EGameplayTagEventType::NewOrRemoved
+        ).AddUObject(this, &ABP_Enemy::OnTagChanged);
+    }
     // Setup health and max health values from the applied GameplayEffect
     HealthChangedDelegateHandle = EnemyAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
         EnemyAttributeSet->GetHealthAttribute()).AddUObject(this, &ABP_Enemy::HealthChanged);
@@ -296,7 +303,53 @@ void ABP_Enemy::SetHealth(float HealthValue)
         UpdateHealthBar();
     }
 }
+void ABP_Enemy::Attack()
+{
+    if (EnemyAbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayCue.Debuff.Stun"))))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%s is stunned and cannot attack!"), *GetName());
+        return; // Stop the attack if stunned
+    }
 
+    // Proceed with attack logic
+    UE_LOG(LogTemp, Warning, TEXT("%s is attacking!"), *GetName());
+    // Attack implementation here
+}
+
+void ABP_Enemy::OnTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+    if (CallbackTag == FGameplayTag::RequestGameplayTag(FName("GameplayCue.Debuff.Stun")))
+    {
+        bool bCanAttack;
+        if (NewCount > 0) // Stun tag added
+        {
+            // Disable movement
+            if (GetCharacterMovement())
+            {
+                GetCharacterMovement()->DisableMovement();
+                UE_LOG(LogTemp, Warning, TEXT("%s is stunned. Movement disabled."), *GetName());
+            }
+
+            // Disable attacks (optional logic)
+            bCanAttack = false; // Add a variable to manage attack state
+            UE_LOG(LogTemp, Warning, TEXT("%s is stunned. Attacks disabled."), *GetName());
+        }
+        else // Stun tag removed
+        {
+            // Re-enable movement
+            if (GetCharacterMovement())
+            {
+                GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+                UpdateMovementSpeed();
+                UE_LOG(LogTemp, Warning, TEXT("%s is no longer stunned. Movement restored."), *GetName());
+            }
+
+            // Re-enable attacks
+            bCanAttack = true;
+            UE_LOG(LogTemp, Warning, TEXT("%s is no longer stunned. Attacks enabled."), *GetName());
+        }
+    }
+}
 
 void ABP_Enemy::UpdateMovementSpeed()
 {
@@ -305,5 +358,15 @@ void ABP_Enemy::UpdateMovementSpeed()
         float NewSpeed = EnemyAttributeSet->GetMovementSpeed();
         GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
         UE_LOG(LogTemp, Warning, TEXT("Enemy movement speed set to: %f"), NewSpeed);
+
+        if (!EnemyAbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("GameplayCue.Debuff.Stun"))))
+        {
+            GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+            UE_LOG(LogTemp, Warning, TEXT("Enemy movement speed set to: %f"), NewSpeed);
+        }
+        else
+        {
+            GetCharacterMovement()->MaxWalkSpeed = 0.0f; // Ensure speed stays 0 when stunned
+        }
     }
 }
