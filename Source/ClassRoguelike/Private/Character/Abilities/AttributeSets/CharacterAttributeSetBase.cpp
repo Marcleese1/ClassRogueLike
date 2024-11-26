@@ -53,27 +53,36 @@ void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffect
 {
     Super::PostGameplayEffectExecute(Data);
 
+    
     // Check if we're dealing with damage
     if (Data.EvaluatedData.Attribute == GetDamageAttribute())
     {
         const float DamageDone = GetDamage();
+        const float newDamageReduction = FMath::Clamp(GetDamageReduction(), 0.0f, 1.0f);
+        
+        const float FinalDamage = DamageDone * (1.0f - newDamageReduction);
 
         // Log the current health and max health before applying the damage
         UE_LOG(LogTemp, Warning, TEXT("Damage Done: %f"), DamageDone);
         UE_LOG(LogTemp, Warning, TEXT("Current Health Before Modifier: %f"), GetHealth());
         UE_LOG(LogTemp, Warning, TEXT("Current Max Health Before Modifier: %f"), GetMaxHealth());
+        UE_LOG(LogTemp, Warning, TEXT("Damage Reduction: %f"), newDamageReduction);
+        UE_LOG(LogTemp, Warning, TEXT("Final Damage: %f"), FinalDamage);
 
+
+        // Subtract the final damage from Health
+        const float NewHealth = FMath::Clamp(GetHealth() - FinalDamage, 0.0f, GetMaxHealth());
+
+        SetHealth(NewHealth);
+
+       SetDamage(0.0f);
         // Check if health is being reset somewhere before applying the damage
         if (GetHealth() == 100.0f)
         {
             UE_LOG(LogTemp, Error, TEXT("Warning: Health has been reset to 100 before applying damage!"));
         }
-
-        // Apply the damage by subtracting it from the health
-        float NewHealth = FMath::Clamp(GetHealth() - DamageDone, 0.0f, GetMaxHealth());
-
-        // Apply the new health value and log it
-        SetHealth(NewHealth);
+        
+        
         UE_LOG(LogTemp, Warning, TEXT("New Health After Damage: %f"), NewHealth);
 
         // Check if health is still being reset after applying the damage
@@ -81,9 +90,6 @@ void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffect
         {
             UE_LOG(LogTemp, Error, TEXT("Error: Health has been reset to 100 after applying damage!"));
         }
-
-        // Clear the damage value only after health has been updated
-        SetDamage(0.0f);
 
         // Check if the entity is dead and handle death logic
         if (NewHealth <= 0.0f)
