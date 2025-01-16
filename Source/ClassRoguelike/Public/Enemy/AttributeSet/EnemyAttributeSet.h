@@ -44,8 +44,12 @@ public:
     FGameplayAttributeData MovementSpeed;
     ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, MovementSpeed)
 
+        UPROPERTY(BlueprintReadOnly, Category = "XP", ReplicatedUsing = OnRep_XP)
+    FGameplayAttributeData XPValue;
+    ATTRIBUTE_ACCESSORS(UEnemyAttributeSet, XPValue)
+
         // Replication notification functions
-        UFUNCTION()
+    UFUNCTION()
     void OnRep_Health(const FGameplayAttributeData& OldHealth);
 
     UFUNCTION()
@@ -63,6 +67,9 @@ protected:
 
     UFUNCTION()
     void OnRep_Damage(const FGameplayAttributeData& OldDamage);
+
+    UFUNCTION()
+    void OnRep_XP(const FGameplayAttributeData& OldXP);
 
     // Override to support replication of attributes
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -21,20 +21,20 @@ AMainPlayerCharacter::AMainPlayerCharacter(const FObjectInitializer& ObjectIniti
    
 
 
-    // Initialize input actions and contexts
-    static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/Game/Input/IA_UseAbility.IA_UseAbility"));
-    UseAbilityAction = UseAbilityActionFinder.Object;
+    //// Initialize input actions and contexts
+    //static ConstructorHelpers::FObjectFinder<UInputAction> UseAbilityActionFinder(TEXT("/ClassRoguelike/Input/IA_UseAbility.IA_UseAbility"));
+    //UseAbilityAction = UseAbilityActionFinder.Object;
 
-    static ConstructorHelpers::FObjectFinder<UInputMappingContext> AbilityMappingContextFinder(TEXT("/Game/Input/IMC_AbilityMapping.IMC_AbilityMapping"));
-    AbilityMappingContext = AbilityMappingContextFinder.Object;
+    //static ConstructorHelpers::FObjectFinder<UInputMappingContext> AbilityMappingContextFinder(TEXT("/Game/Input/IMC_AbilityMapping.IMC_AbilityMapping"));
+    //AbilityMappingContext = AbilityMappingContextFinder.Object;
 
-    static ConstructorHelpers::FObjectFinder<UInputMappingContext> FighterAbilitiesMappingContextFinder(TEXT("/Game/Input/IMC_FighterAbilities.IMC_FighterAbilities"));
+    static ConstructorHelpers::FObjectFinder<UInputMappingContext> FighterAbilitiesMappingContextFinder(TEXT("/Game/ClassRogueLike/Characters/Classes/Abilities/FighterAbilities/IMC_FighterAbiltiies.IMC_FighterAbiltiies"));
     FighterAbilitiesMappingContext = FighterAbilitiesMappingContextFinder.Object;
 
-    static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/Input/IA_StartTargeting.IA_StartTargeting"));
+    static ConstructorHelpers::FObjectFinder<UInputAction> StartTargetingActionFinder(TEXT("/Game/ClassRogueLike/Characters/Classes/Abilities/IA_StartTargeting.IA_StartTargeting"));
     StartTargetingAction = StartTargetingActionFinder.Object; 
 
-    static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/Input/IA_Confirm.IA_Confirm"));
+    static ConstructorHelpers::FObjectFinder<UInputAction> ConfirmTargetActionFinder(TEXT("/Game/ClassRogueLike/Characters/Classes/Abilities/IA_Confirm.IA_Confirm"));
     ConfirmTargetAction = ConfirmTargetActionFinder.Object;
 
     // Initialize camera components
@@ -212,15 +212,26 @@ void AMainPlayerCharacter::TurnRate(const FInputActionValue& Value)
 
 void AMainPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
+    if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.InputBlocked"))))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("MoveForward blocked due to Dash."));
+        return;  // Block movement
+    }
+
     if (IsAlive())
     {
-        UE_LOG(LogTemp, Warning, TEXT("MoveForward: %f"), Value.Get<float>());
         AddMovementInput(UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw, 0)), Value.Get<float>());
     }
 }
 
 void AMainPlayerCharacter::MoveRight(const FInputActionValue& Value)
 {
+    if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.InputBlocked"))))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("MoveRight blocked due to Dash."));
+        return;  // Block movement
+    }
+
     if (IsAlive())
     {
         AddMovementInput(UKismetMathLibrary::GetRightVector(FRotator(0, GetControlRotation().Yaw, 0)), Value.Get<float>());

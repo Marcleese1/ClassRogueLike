@@ -14,17 +14,27 @@ UEnemyAttributeSet::UEnemyAttributeSet()
     Armor.SetBaseValue(0.0f);  // Set default armor values
     Armor.SetCurrentValue(0.0f);
 
-    Damage.SetBaseValue(0.0f);  // Set default damage values
-    Damage.SetCurrentValue(0.0f);
+    Damage.SetBaseValue(10.0f);  // Set default damage values
+    Damage.SetCurrentValue(10.0f);
 
     MovementSpeed.SetBaseValue(600.0f);  // Set default movement speed values
     MovementSpeed.SetCurrentValue(600.0f);
+
+    XPValue.SetBaseValue(5.0f);
+    XPValue.SetCurrentValue(5.0f);
 }
 
 void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
     Super::PostGameplayEffectExecute(Data);
 
+
+    FString EffectName = Data.EffectSpec.Def->GetName();
+    UE_LOG(LogTemp, Warning, TEXT("Enemy PostGameplayEffectExecute triggered by Effect: %s"), *EffectName);
+
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Yellow, FString::Printf(TEXT("Enemy Health: %f"), Health.GetCurrentValue()));
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Yellow, FString::Printf(TEXT("Enemy Max Health: %f"), MaxHealth.GetCurrentValue()));
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Yellow, FString::Printf(TEXT("Enemy Damage: %f"), Damage.GetCurrentValue()));
     // If we are dealing with damage or health changes
     if (Data.EvaluatedData.Attribute == GetDamageAttribute())
     {
@@ -32,6 +42,7 @@ void UEnemyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallb
 
         // Clamp new health
         const float NewHealth = FMath::Clamp(GetHealth() - DamageDone, 0.0f, GetMaxHealth());
+        GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Yellow, FString::Printf(TEXT("Enemy New Health After Damage: %f"), NewHealth));
         SetHealth(NewHealth);
 
         // Reset damage value
@@ -71,6 +82,11 @@ void UEnemyAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldMo
 void UEnemyAttributeSet::OnRep_Damage(const FGameplayAttributeData& OldDamage)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UEnemyAttributeSet, Damage, OldDamage);
+}
+
+void UEnemyAttributeSet::OnRep_XP(const FGameplayAttributeData& OldXP)
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UEnemyAttributeSet, XPValue, OldXP)
 }
 
 void UEnemyAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

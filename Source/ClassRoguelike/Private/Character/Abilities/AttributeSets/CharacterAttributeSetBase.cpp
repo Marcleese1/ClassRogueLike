@@ -53,6 +53,19 @@ void UCharacterAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffect
 {
     Super::PostGameplayEffectExecute(Data);
 
+
+    FString EffectName = Data.EffectSpec.Def->GetName();
+
+    UE_LOG(LogTemp, Warning, TEXT("PostGameplayEffectExecute triggered by Effect: %s"), *EffectName);
+
+    // Print all attribute values on-screen
+    //GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Level: %f"), Level.GetCurrentValue()));
+    //GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Health: %f"), Health.GetCurrentValue()));
+    //GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Max Health: %f"), MaxHealth.GetCurrentValue()));
+    //GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Mana: %f"), Mana.GetCurrentValue()));
+    //GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Damage: %f"), Damage.GetCurrentValue()));
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Critical Hit Chance: %f"), CriticalHitChance.GetCurrentValue()));
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Critical Hit Damage: %f"), CriticalHitDamage.GetCurrentValue()));
     
     // Check if we're dealing with damage
     if (Data.EvaluatedData.Attribute == GetDamageAttribute())
